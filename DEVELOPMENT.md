@@ -54,3 +54,9 @@ check with a real battery and charger; automated cases use simulated states.
 Charge-limit readout remains Unavailable: a reliable public source has not been identified. No limit is inferred from a paused charge or an 80% reading. Adapter wattage is the reported adapter rating, not a measurement of current charging power.
 
 The full test suite includes hardware-dependent tests that skip when devices or explicit hardware validation flags are absent. Physical accessory and microphone selection checks still require the corresponding devices.
+
+## Experimental DMG packaging
+
+Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.5.0/`. Existing output is preserved; move it aside before another packaging run.
+
+The image includes DuoBar.app, an Applications shortcut, the MIT license, and bilingual installation notes. It does not install anything or replace the currently running app. Packaging uses an ad-hoc signature, not Developer ID or notarization. GitHub publication is a separate step.

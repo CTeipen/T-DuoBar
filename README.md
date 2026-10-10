@@ -15,6 +15,12 @@ A community fork of [DuoBar by Mikeli7666](https://github.com/Mikeli7666/DuoBar)
 - Independent visibility settings for menu sections and battery time. Expanded content scrolls when necessary.
 - Original DuoBar battery ring, volume controls, color coding, and menu-bar behavior retained.
 
+## Experimental DMG
+
+[Download T-DuoBar 1.5.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.5.0/T-DuoBar-1.5.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.5.0)
+
+**The DMG is an experimental ad-hoc signed build, not Developer ID signed or Apple notarized.** Quit DuoBar, back up the installed copy, mount the DMG, and drag `DuoBar.app` to Applications. Launch it from Applications. macOS may block a downloaded copy; use [Apple's documented individual-app procedure](https://support.apple.com/en-us/102445) only if you trust the release. Do not disable system protections globally.
+
 ## Build and install
 
 Requires macOS 13 or newer and full Xcode. This version has been built and tested on Apple Silicon; compatibility with every supported macOS version and accessory has not been physically verified.
@@ -27,7 +33,7 @@ cd T-DuoBar
 
 The script builds Release, verifies the local signature, installs `/Applications/DuoBar.app`, and checks that the process runs from that location. It moves any previous installed copy intact to `~/Library/Application Support/T-DuoBar/Backups/`.
 
-**This fork currently provides source code, not a Developer ID signed and notarized download.** Local builds use ad-hoc signing. The application retains the DuoBar name and bundle identifier, shares its preferences, and replaces the installed DuoBar copy; the fork and original are not intended to run simultaneously. See [DEVELOPMENT.md](DEVELOPMENT.md) for test and debugging commands.
+**This fork does not yet provide a Developer ID signed and notarized download.** The experimental DMG and local builds use ad-hoc signing. The application retains the DuoBar name and bundle identifier, shares its preferences, and replaces the installed DuoBar copy; the fork and original are not intended to run simultaneously. See [DEVELOPMENT.md](DEVELOPMENT.md) for test and debugging commands.
 
 ## Validation and limitations
 
