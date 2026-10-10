@@ -1,3 +1,5 @@
+> This is the T-DuoBar community fork. The text below documents the original DuoBar. For this fork, see [README.md](README.md) or [README.ru.md](README.ru.md).
+
 # DuoBar
 
 [English](README.md) | [简体中文](README.zh-CN.md) | [Русский](README.ru.md) | [Українська](README.uk.md)
