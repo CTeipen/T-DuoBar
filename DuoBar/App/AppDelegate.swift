@@ -21,7 +21,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PreferenceKeys.animationsEnabled: true,
             PreferenceKeys.menuBarIconScale: MenuBarIconSize.defaultScale,
             PreferenceKeys.batteryColorCoding: false,
-            PreferenceKeys.openOnHover: false
+            PreferenceKeys.openOnHover: false,
+            PreferenceKeys.showNetwork: true,
+            PreferenceKeys.showVolume: true,
+            PreferenceKeys.showBattery: true,
+            PreferenceKeys.showAccessories: true,
+            PreferenceKeys.showAudioOutput: true,
+            PreferenceKeys.showMicrophone: false,
+            PreferenceKeys.showBatteryTime: true,
+            PreferenceKeys.lowBatteryNotificationThreshold: 20
         ])
         super.init()
     }

@@ -29,6 +29,7 @@ final class AudioOutputService {
         isStarted = true
 
         registerSystemListener(selector: kAudioHardwarePropertyDefaultOutputDevice)
+        registerSystemListener(selector: kAudioHardwarePropertyDefaultInputDevice)
         registerSystemListener(selector: kAudioHardwarePropertyDevices)
         refresh(rebindDeviceListeners: true)
     }
@@ -129,6 +130,41 @@ final class AudioOutputService {
         return result == noErr && currentDefaultDeviceID == deviceID
     }
 
+    @discardableResult
+    func setDefaultInput(uid: String) -> Bool {
+        guard let device = selectableInputDevices().first(where: { $0.uid == uid }),
+              let deviceID = deviceID(forUID: device.uid) else { return false }
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        guard isSettable(objectID: Self.systemObject, address: address) else { return false }
+        var value = deviceID
+        let result = AudioObjectSetPropertyData(Self.systemObject, &address, 0, nil,
+            UInt32(MemoryLayout<AudioDeviceID>.size), &value)
+        refresh()
+        return result == noErr && readDefaultInputDeviceID() == deviceID
+    }
+
+    private func readDefaultInputDeviceID() -> AudioDeviceID {
+        readUInt32(objectID: Self.systemObject, selector: kAudioHardwarePropertyDefaultInputDevice)
+            ?? AudioDeviceID(kAudioObjectUnknown)
+    }
+
+    private func selectableInputDevices() -> [AudioDeviceStatus] {
+        readAudioDeviceIDs().filter { deviceID in
+            var streams = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyStreams,
+                mScope: kAudioDevicePropertyScopeInput, mElement: kAudioObjectPropertyElementMain)
+            var size: UInt32 = 0
+            guard AudioObjectGetPropertyDataSize(deviceID, &streams, 0, nil, &size) == noErr,
+                  size >= MemoryLayout<AudioStreamID>.size, !isHidden(deviceID) else { return false }
+            var eligible = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceCanBeDefaultDevice,
+                mScope: kAudioDevicePropertyScopeInput, mElement: kAudioObjectPropertyElementMain)
+            return readUInt32(objectID: deviceID, address: &eligible) == 1
+        }.compactMap(makeDeviceStatus).filter(\.isAlive).sorted(by: Self.compareForPicker)
+    }
+
     private func refresh(rebindDeviceListeners: Bool) {
         let defaultDeviceID = readDefaultOutputDeviceID()
         if rebindDeviceListeners || defaultDeviceID != currentDefaultDeviceID {
@@ -150,7 +186,9 @@ final class AudioOutputService {
                 defaultOutput: defaultOutput,
                 volume: volume,
                 connectedBluetoothOutputs: bluetoothOutputs,
-                availableOutputs: outputDevices
+                availableOutputs: outputDevices,
+                defaultInput: makeDeviceStatus(readDefaultInputDeviceID()),
+                availableInputs: selectableInputDevices()
             )
         )
     }

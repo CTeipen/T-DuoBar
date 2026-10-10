@@ -90,3 +90,50 @@
 "Open Network Settings" = "打開網絡設定";
 "Open Battery Settings" = "打開電池設定";
 "No output devices" = "沒有輸出裝置";
+
+// Battery time in the popover.
+"Battery connected, not charging" = "電池未充電";
+"Battery time estimate unavailable" = "時間估算暫不可用";
+"Less than one minute" = "不到一分鐘";
+"%d min" = "%d 分鐘";
+"%d h %d min" = "%d 小時 %d 分鐘";
+"Until full charge: ≈%@" = "充滿還需：≈%@";
+"Until empty: ≈%@" = "剩餘時間：≈%@";
+
+// Extended status controls.
+"Show details" = "顯示詳情";
+"Expanded" = "已展開";
+"Collapsed" = "已摺疊";
+"Accessory batteries" = "配件電池";
+"Reading accessories…" = "正在讀取配件…";
+"No connected accessories" = "沒有已連接的配件";
+"Accessory battery data unavailable" = "配件電池資料無法使用";
+"Battery reading unavailable" = "電量無法使用";
+"Left" = "左";
+"Right" = "右";
+"Case" = "充電盒";
+"No audio devices" = "沒有音訊裝置";
+"Unable to select audio device" = "無法選取音訊裝置";
+"Favorite audio device" = "喜愛的音訊裝置";
+"Microphone" = "麥克風";
+"Menu sections" = "選單內容";
+"Show battery time" = "顯示電池剩餘時間";
+"Notifications" = "通知";
+"Low battery" = "電池電量低";
+"Battery threshold" = "電量閾值";
+"Notification sound" = "通知聲音";
+"One alert when battery crosses the threshold." = "電量低於閾值時提醒一次。";
+"Notification Settings…" = "通知設定…";
+"Allow DuoBar notifications in System Settings." = "請在系統設定中允許 DuoBar 通知。";
+"Unable to enable notifications" = "無法啟用通知";
+"Unable to deliver battery notification" = "無法傳送電池通知";
+"Estimated %d minutes of battery remaining" = "預計電池剩餘 %d 分鐘";
+"Power source" = "電源";
+"Adapter power" = "轉接器功率";
+"Charge limit" = "充電上限";
+"%d W" = "%d 瓦";
+"Signal" = "訊號";
+"Band" = "頻段";
+"Channel" = "頻道";
+"IP address" = "IP 位址";
+"Copy IP address" = "複製 IP 位址";

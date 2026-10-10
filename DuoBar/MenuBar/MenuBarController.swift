@@ -70,7 +70,13 @@ final class MenuBarController: NSObject {
         popover.animates = true
         popover.contentSize = NSSize(width: 304, height: 316)
         let hostingController = NSHostingController(
-            rootView: StatusPopoverView(statusStore: statusStore) { [weak self] in
+            rootView: StatusPopoverView(statusStore: statusStore, onHeightChange: { [weak self] height in
+                DispatchQueue.main.async {
+                    guard let self, !self.isInvalidated,
+                          abs(self.popover.contentSize.height - height) > 0.5 else { return }
+                    self.popover.contentSize = NSSize(width: 304, height: height)
+                }
+            }) { [weak self] in
                 self?.closePopoverFromContent()
             }
         )
@@ -105,12 +111,14 @@ final class MenuBarController: NSObject {
         guard !popover.isShown, let button = statusItem.button else { return }
 
         updatePopoverBehavior()
+        statusStore.refresh()
         NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         // Let the accessory app finish activating and the popover become key
         // before asking CoreLocation to present its native authorization UI.
         DispatchQueue.main.async { [weak self] in
+            guard UserDefaults.standard.object(forKey: PreferenceKeys.showNetwork) as? Bool ?? true else { return }
             self?.statusStore.requestWiFiSSIDAccess(trigger: .popoverOpened)
         }
     }

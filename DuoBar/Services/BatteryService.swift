@@ -85,6 +85,9 @@ final class BatteryService {
         let isPluggedIn = powerSourceState == kIOPSACPowerValue
         let isFullyCharged = dictionary[kIOPSIsChargedKey] as? Bool ?? (percentage == 100 && isPluggedIn && !isCharging)
 
+        let adapter = IOPSCopyExternalPowerAdapterDetails()?.takeRetainedValue() as? [String: Any]
+        let watts = adapter?[kIOPSPowerAdapterWattsKey] as? Int
+
         publish(
             BatteryStatus(
                 percentage: percentage,
@@ -92,7 +95,10 @@ final class BatteryService {
                 isPluggedIn: isPluggedIn,
                 isFullyCharged: isFullyCharged,
                 isAvailable: true,
-                isLowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled
+                isLowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled,
+                adapterWatts: isPluggedIn ? watts.flatMap { (1...1000).contains($0) ? $0 : nil } : nil,
+                timeToEmptyMinutes: dictionary[kIOPSTimeToEmptyKey] as? Int,
+                timeToFullChargeMinutes: dictionary[kIOPSTimeToFullChargeKey] as? Int
             ),
             trigger: trigger
         )
@@ -105,7 +111,7 @@ final class BatteryService {
 
         #if DEBUG
         let percentage = status.percentage.map { "\($0)%" } ?? "unavailable"
-        NSLog("%@", "[BatteryService] battery = \(percentage), charging = \(status.isCharging), pluggedIn = \(status.isPluggedIn), source = \(trigger.rawValue)")
+        NSLog("%@", "[BatteryService] battery = \(percentage), charging = \(status.isCharging), pluggedIn = \(status.isPluggedIn), time = \(status.remainingTimeMinutes.map(String.init) ?? "unavailable"), source = \(trigger.rawValue)")
         if let previous, previous.isCharging != status.isCharging {
             NSLog("%@", "[BatteryService] charging changed: \(previous.isCharging) → \(status.isCharging)")
         }

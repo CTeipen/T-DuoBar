@@ -45,6 +45,8 @@ struct SettingsView: View {
                 }
             }
 
+            ExtendedSettingsView()
+
             Section(localized("General")) {
                 VStack(alignment: .leading, spacing: 4) {
                     Toggle(localized("Open on Hover"), isOn: $openOnHover)
@@ -125,7 +127,7 @@ struct SettingsView: View {
         #if DEBUG
         MarketingCaptureMode.isEnabled ? 360 : 850
         #else
-        360
+        650
         #endif
     }
 

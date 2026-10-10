@@ -7,6 +7,7 @@ struct StatusRow: View {
         case menu
     }
 
+    @Environment(\.statusSectionExpanded) private var isExpanded
     let symbol: String
     let title: String
     let detail: String
@@ -111,6 +112,7 @@ struct StatusRow: View {
 
             if let accessorySymbol {
                 Image(systemName: accessorySymbol)
+                    .rotationEffect(.degrees(accessorySymbol == "chevron.right" && isExpanded ? 90 : 0))
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(.tertiary)
             }

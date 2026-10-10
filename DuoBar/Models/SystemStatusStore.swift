@@ -7,6 +7,9 @@ final class SystemStatusStore: ObservableObject {
     @Published private(set) var laptopRingModeState: LaptopRingModeState
     @Published private(set) var wifiPowerControlError: String?
 
+    let accessoryBatteryService = AccessoryBatteryService()
+    private let batteryNotificationService: BatteryNotificationService?
+
     let priorityController = StatusPriorityController()
     let deviceContext: DeviceContext
     let laptopRingModeController: LaptopRingModeController
@@ -28,6 +31,7 @@ final class SystemStatusStore: ObservableObject {
         deviceContext: DeviceContext? = nil,
         laptopRingModeController: LaptopRingModeController? = nil
     ) {
+        batteryNotificationService = startServices ? .shared : nil
         batteryService = BatteryService()
         networkService = NetworkService()
         audioOutputService = AudioOutputService()
@@ -170,6 +174,20 @@ final class SystemStatusStore: ObservableObject {
         return audioOutputService.setDefaultOutput(uid: uid)
     }
 
+    @discardableResult
+    func setDefaultInput(uid: String) -> Bool {
+        #if DEBUG
+        if var audio = debugAudioOverride {
+            guard let device = audio.availableInputs.first(where: { $0.uid == uid }) else { return false }
+            audio.defaultInput = device
+            debugAudioOverride = audio
+            mutate { $0.audio = audio }
+            return true
+        }
+        #endif
+        return audioOutputService.setDefaultInput(uid: uid)
+    }
+
     private func mutate(_ update: (inout SystemStatus) -> Void) {
         let previous = status
         var next = status
@@ -183,6 +201,7 @@ final class SystemStatusStore: ObservableObject {
     private func acceptBatteryStatus(_ battery: BatteryStatus) {
         laptopRingModeController.update(with: battery)
         mutate { $0.battery = battery }
+        batteryNotificationService?.update(battery)
     }
 
     #if DEBUG
@@ -249,6 +268,11 @@ final class SystemStatusStore: ObservableObject {
         if audio.defaultOutput == nil {
             audio.defaultOutput = DebugAudioDeviceState.builtIn.status.defaultOutput
         }
+        debugAudioOverride = audio
+        mutate { $0.audio = audio }
+    }
+
+    func applyDebugAudioStatus(_ audio: AudioStatus) {
         debugAudioOverride = audio
         mutate { $0.audio = audio }
     }

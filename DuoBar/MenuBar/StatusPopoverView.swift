@@ -5,14 +5,40 @@ struct StatusPopoverView: View {
     @ObservedObject private var statusStore: SystemStatusStore
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
+    @AppStorage(PreferenceKeys.showNetwork) private var showNetwork = true
+    @AppStorage(PreferenceKeys.showVolume) private var showVolume = true
+    @AppStorage(PreferenceKeys.showBattery) private var showBattery = true
+    @AppStorage(PreferenceKeys.showAccessories) private var showAccessories = true
+    @AppStorage(PreferenceKeys.showAudioOutput) private var showAudioOutput = true
+    @AppStorage(PreferenceKeys.showMicrophone) private var showMicrophone = false
+    @AppStorage(PreferenceKeys.showBatteryTime) private var showBatteryTime = true
+    @State private var contentHeight: CGFloat = 316
+    private let onHeightChange: (CGFloat) -> Void
     private let onClose: () -> Void
 
-    init(statusStore: SystemStatusStore, onClose: @escaping () -> Void) {
+    init(statusStore: SystemStatusStore, onHeightChange: @escaping (CGFloat) -> Void = { _ in }, onClose: @escaping () -> Void) {
         self.statusStore = statusStore
         self.onClose = onClose
+        self.onHeightChange = onHeightChange
     }
 
     var body: some View {
+        ScrollView {
+            content.background(GeometryReader { geometry in
+                Color.clear.preference(key: PopoverContentHeightKey.self, value: geometry.size.height)
+            })
+        }
+        .frame(width: 304, height: min(contentHeight, maximumHeight))
+        .onPreferenceChange(PopoverContentHeightKey.self) { height in
+            guard height > 0 else { return }
+            contentHeight = height
+            onHeightChange(min(height, maximumHeight))
+        }
+    }
+
+    private var maximumHeight: CGFloat { min(600, (NSScreen.main?.visibleFrame.height ?? 700) - 80) }
+
+    var content: some View {
         VStack(spacing: 8) {
             HStack {
                 Text("DuoBar")
@@ -27,47 +53,71 @@ struct StatusPopoverView: View {
             }
             .padding(.horizontal, 2)
 
-            StatusRow(
-                symbol: networkSymbol,
-                title: localized("Network"),
-                detail: networkDetail,
-                stateText: networkState,
-                tint: .primary,
-                accessory: .disclosure,
-                trailing: wifiPowerToggle,
-                onActivate: openNetworkSettings,
-                activationHint: networkSettingsHint
-            )
-
-            VolumeStatusRow(
-                volume: statusStore.status.audio.volume,
-                hasOutputDevice: statusStore.status.audio.defaultOutput != nil,
-                playbackDeviceIdentifier: statusStore.status.audio.defaultOutput?.uid,
-                onSetVolume: statusStore.setVolume,
-                onSetMuted: statusStore.setMuted
-            )
-
-            Button(action: openBatterySettings) {
-                BatteryStatusRow(
-                    battery: statusStore.status.battery,
-                    showPercentage: showBatteryPercentage,
-                    showsDisclosure: true
-                )
+            if showNetwork {
+                StatusDetailSection {
+                    StatusRow(symbol: networkSymbol, title: localized("Network"), detail: networkDetail,
+                        stateText: networkState, tint: .primary, accessory: .disclosure)
+                } content: {
+                    if let toggle = wifiPowerToggle {
+                        HStack { Text(localized("Wi-Fi power")); Spacer(); toggle }
+                    }
+                    if statusStore.status.network.transport == .wifi {
+                        StatusDetailLine(title: "Signal", value: statusStore.status.network.rssi.map { "\($0) dBm" })
+                        StatusDetailLine(title: "Band", value: statusStore.status.network.wifiBand)
+                        StatusDetailLine(title: "Channel", value: statusStore.status.network.wifiChannel.map(String.init))
+                    }
+                    HStack {
+                        StatusDetailLine(title: "IP address", value: statusStore.status.network.localIPAddress)
+                        if let address = statusStore.status.network.localIPAddress {
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(address, forType: .string)
+                            } label: { Image(systemName: "doc.on.doc") }
+                            .buttonStyle(.plain).accessibilityLabel(localized("Copy IP address"))
+                        }
+                    }
+                    Button(localized("Open Network Settings"), action: openNetworkSettings).buttonStyle(.link)
+                }
             }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity)
-            .accessibilityHint(localized("Open Battery Settings"))
 
-            AudioOutputRow(
-                symbol: audioOutputSymbol,
-                title: localized("Audio Output"),
-                detail: audioOutputDetail,
-                stateText: audioOutputState,
-                outputs: statusStore.status.audio.selectableOutputs,
-                selectedUID: statusStore.status.audio.defaultOutput?.uid,
-                onSelect: { statusStore.setDefaultOutput(uid: $0) },
-                onOpenSoundSettings: openSoundSettings
-            )
+            if showVolume {
+                VolumeStatusRow(
+                    volume: statusStore.status.audio.volume,
+                    hasOutputDevice: statusStore.status.audio.defaultOutput != nil,
+                    playbackDeviceIdentifier: statusStore.status.audio.defaultOutput?.uid,
+                    onSetVolume: statusStore.setVolume,
+                    onSetMuted: statusStore.setMuted
+                )
+
+            }
+
+            if showBattery {
+                StatusDetailSection {
+                    BatteryStatusRow(battery: statusStore.status.battery,
+                        showPercentage: showBatteryPercentage, showsDisclosure: true,
+                        showsRemainingTime: showBatteryTime)
+                } content: {
+                    StatusDetailLine(title: "Power source", value: statusStore.status.battery.isAvailable ? localized(statusStore.status.battery.isPluggedIn ? "Power adapter connected" : "Using battery power") : nil)
+                    StatusDetailLine(title: "Adapter power", value: statusStore.status.battery.adapterWatts.map { localized("%d W", $0) })
+                    StatusDetailLine(title: "Charge limit", value: nil)
+                    Button(localized("Open Battery Settings"), action: openBatterySettings).buttonStyle(.link)
+                }
+            }
+
+            if showAccessories { AccessoryBatterySection(service: statusStore.accessoryBatteryService) }
+
+            if showAudioOutput {
+                AudioDevicesSection(title: "Audio Output", symbol: audioOutputSymbol,
+                    devices: statusStore.status.audio.selectableOutputs,
+                    selectedUID: statusStore.status.audio.defaultOutput?.uid, allowsFavorites: true,
+                    onSelect: statusStore.setDefaultOutput, onOpenSettings: openSoundSettings)
+            }
+            if showMicrophone {
+                AudioDevicesSection(title: "Microphone", symbol: "mic",
+                    devices: statusStore.status.audio.availableInputs,
+                    selectedUID: statusStore.status.audio.defaultInput?.uid,
+                    onSelect: statusStore.setDefaultInput, onOpenSettings: openSoundSettings)
+            }
 
             // Development diagnostics belong in the dedicated DEBUG diagnostics
             // surface, never in the production status-card hierarchy.
@@ -244,9 +294,11 @@ struct StatusPopoverView: View {
 }
 
 struct BatteryStatusRow: View {
+    @Environment(\.statusSectionExpanded) private var isExpanded
     let battery: BatteryStatus
     let showPercentage: Bool
     var showsDisclosure = false
+    var showsRemainingTime = true
 
     var body: some View {
         HStack(spacing: 11) {
@@ -273,16 +325,25 @@ struct BatteryStatusRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
+                if showsRemainingTime, let time = battery.remainingTimeDescription {
+                    Text(time)
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             if showsDisclosure {
                 Image(systemName: "chevron.right")
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(.tertiary)
             }
         }
         .padding(.horizontal, 10)
-        .frame(height: 48)
+        .frame(minHeight: !showsRemainingTime || battery.remainingTimeDescription == nil ? 48 : 64)
         .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 
@@ -419,3 +480,8 @@ private struct DebugStatusSimulatorView: View {
     }
 }
 #endif
+
+private struct PopoverContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}

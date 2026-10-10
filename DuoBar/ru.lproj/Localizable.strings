@@ -90,3 +90,50 @@
 "Open Network Settings" = "Открыть настройки сети";
 "Open Battery Settings" = "Открыть настройки аккумулятора";
 "No output devices" = "Нет устройств вывода";
+
+// Battery time in the popover.
+"Battery connected, not charging" = "Батарея не заряжается";
+"Battery time estimate unavailable" = "Оценка времени пока недоступна";
+"Less than one minute" = "меньше минуты";
+"%d min" = "%d мин.";
+"%d h %d min" = "%d ч %d мин.";
+"Until full charge: ≈%@" = "До полного заряда: ≈%@";
+"Until empty: ≈%@" = "До разрядки: ≈%@";
+
+// Extended status controls.
+"Show details" = "Показать подробности";
+"Expanded" = "Раскрыто";
+"Collapsed" = "Свёрнуто";
+"Accessory batteries" = "Батареи аксессуаров";
+"Reading accessories…" = "Чтение аксессуаров…";
+"No connected accessories" = "Нет подключённых аксессуаров";
+"Accessory battery data unavailable" = "Данные аксессуаров недоступны";
+"Battery reading unavailable" = "Заряд недоступен";
+"Left" = "Л";
+"Right" = "П";
+"Case" = "Кейс";
+"No audio devices" = "Нет аудиоустройств";
+"Unable to select audio device" = "Не удалось выбрать устройство";
+"Favorite audio device" = "Избранное аудиоустройство";
+"Microphone" = "Микрофон";
+"Menu sections" = "Состав меню";
+"Show battery time" = "Показывать оставшееся время";
+"Notifications" = "Уведомления";
+"Low battery" = "Низкий заряд батареи";
+"Battery threshold" = "Порог заряда";
+"Notification sound" = "Звук уведомления";
+"One alert when battery crosses the threshold." = "Один сигнал при пересечении порога заряда.";
+"Notification Settings…" = "Настройки уведомлений…";
+"Allow DuoBar notifications in System Settings." = "Разрешите уведомления DuoBar в системных настройках.";
+"Unable to enable notifications" = "Не удалось включить уведомления";
+"Unable to deliver battery notification" = "Не удалось отправить уведомление о заряде";
+"Estimated %d minutes of battery remaining" = "Примерно %d мин. работы от батареи";
+"Power source" = "Питание";
+"Adapter power" = "Мощность адаптера";
+"Charge limit" = "Лимит заряда";
+"%d W" = "%d Вт";
+"Signal" = "Сигнал";
+"Band" = "Диапазон";
+"Channel" = "Канал";
+"IP address" = "IP-адрес";
+"Copy IP address" = "Скопировать IP-адрес";

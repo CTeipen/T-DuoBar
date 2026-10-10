@@ -90,3 +90,50 @@
 "Open Network Settings" = "Open Network Settings";
 "Open Battery Settings" = "Open Battery Settings";
 "No output devices" = "No output devices";
+
+// Battery time in the popover.
+"Battery connected, not charging" = "Battery connected, not charging";
+"Battery time estimate unavailable" = "Battery time estimate unavailable";
+"Less than one minute" = "Less than one minute";
+"%d min" = "%d min";
+"%d h %d min" = "%d h %d min";
+"Until full charge: ≈%@" = "Until full charge: ≈%@";
+"Until empty: ≈%@" = "Until empty: ≈%@";
+
+// Extended status controls.
+"Show details" = "Show details";
+"Expanded" = "Expanded";
+"Collapsed" = "Collapsed";
+"Accessory batteries" = "Accessory batteries";
+"Reading accessories…" = "Reading accessories…";
+"No connected accessories" = "No connected accessories";
+"Accessory battery data unavailable" = "Accessory battery data unavailable";
+"Battery reading unavailable" = "Battery reading unavailable";
+"Left" = "Left";
+"Right" = "Right";
+"Case" = "Case";
+"No audio devices" = "No audio devices";
+"Unable to select audio device" = "Unable to select audio device";
+"Favorite audio device" = "Favorite audio device";
+"Microphone" = "Microphone";
+"Menu sections" = "Menu sections";
+"Show battery time" = "Show battery time";
+"Notifications" = "Notifications";
+"Low battery" = "Low battery";
+"Battery threshold" = "Battery threshold";
+"Notification sound" = "Notification sound";
+"One alert when battery crosses the threshold." = "One alert when battery crosses the threshold.";
+"Notification Settings…" = "Notification Settings…";
+"Allow DuoBar notifications in System Settings." = "Allow DuoBar notifications in System Settings.";
+"Unable to enable notifications" = "Unable to enable notifications";
+"Unable to deliver battery notification" = "Unable to deliver battery notification";
+"Estimated %d minutes of battery remaining" = "Estimated %d minutes of battery remaining";
+"Power source" = "Power source";
+"Adapter power" = "Adapter power";
+"Charge limit" = "Charge limit";
+"%d W" = "%d W";
+"Signal" = "Signal";
+"Band" = "Band";
+"Channel" = "Channel";
+"IP address" = "IP address";
+"Copy IP address" = "Copy IP address";

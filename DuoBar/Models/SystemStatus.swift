@@ -7,6 +7,39 @@ struct BatteryStatus: Equatable, Sendable {
     var isFullyCharged: Bool
     var isAvailable: Bool
     var isLowPowerModeEnabled = false
+    var adapterWatts: Int? = nil
+    var timeToEmptyMinutes: Int? = nil
+    var timeToFullChargeMinutes: Int? = nil
+
+    /// Use only the estimate matching the current power state; macOS can retain
+    /// the other estimate briefly after the charger is connected or removed.
+    var remainingTimeMinutes: Int? {
+        guard isAvailable, !isPluggedIn || isCharging else { return nil }
+        let minutes = isPluggedIn ? timeToFullChargeMinutes : timeToEmptyMinutes
+        return minutes.flatMap { $0 >= 0 ? $0 : nil }
+    }
+
+    var remainingTimeDescription: String? {
+        guard isAvailable else { return nil }
+        if isPluggedIn && !isCharging {
+            return isFullyCharged ? nil : localized("Battery connected, not charging")
+        }
+        guard let minutes = remainingTimeMinutes else {
+            return localized("Battery time estimate unavailable")
+        }
+        let duration: String
+        if minutes == 0 {
+            duration = localized("Less than one minute")
+        } else if minutes < 60 {
+            duration = localized("%d min", minutes)
+        } else {
+            duration = localized("%d h %d min", minutes / 60, minutes % 60)
+        }
+        return localized(
+            isPluggedIn ? "Until full charge: ≈%@" : "Until empty: ≈%@",
+            duration
+        )
+    }
 
     static let unavailable = BatteryStatus(
         percentage: nil,
@@ -32,6 +65,9 @@ struct NetworkStatus: Equatable, Sendable {
     var isWiFiPoweredOn: Bool?
     var ssid: String?
     var rssi: Int?
+    var wifiChannel: Int? = nil
+    var wifiBand: String? = nil
+    var localIPAddress: String? = nil
 
     static let unavailable = NetworkStatus(
         isAvailable: false,
@@ -213,6 +249,8 @@ struct AudioStatus: Equatable, Sendable {
     var volume: OutputVolumeStatus
     var connectedBluetoothOutputs: [AudioDeviceStatus]
     var availableOutputs: [AudioDeviceStatus] = []
+    var defaultInput: AudioDeviceStatus? = nil
+    var availableInputs: [AudioDeviceStatus] = []
 
     static let unavailable = AudioStatus(
         isAvailable: false,

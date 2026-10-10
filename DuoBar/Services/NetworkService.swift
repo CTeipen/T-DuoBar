@@ -118,7 +118,10 @@ final class NetworkService: NSObject, @preconcurrency CLLocationManagerDelegate 
             interfaceName: activeInterface?.name,
             isWiFiPoweredOn: wifiPoweredOn,
             ssid: ssid,
-            rssi: rssi
+            rssi: rssi,
+            wifiChannel: transport == .wifi && isConnected ? wifiInterface?.wlanChannel()?.channelNumber : nil,
+            wifiBand: transport == .wifi && isConnected ? Self.bandName(wifiInterface?.wlanChannel()) : nil,
+            localIPAddress: isConnected ? LocalNetworkAddress.ipv4(interface: activeInterface?.name) : nil
         )
         publish(status)
 
@@ -140,6 +143,16 @@ final class NetworkService: NSObject, @preconcurrency CLLocationManagerDelegate 
             )
         )
         #endif
+    }
+
+    private static func bandName(_ channel: CWChannel?) -> String? {
+        guard let channel else { return nil }
+        switch channel.channelBand {
+        case .band2GHz: return "2.4 GHz"
+        case .band5GHz: return "5 GHz"
+        case .band6GHz: return "6 GHz"
+        default: return nil
+        }
     }
 
     func setWiFiPower(_ enabled: Bool) -> WiFiPowerControlResult {
