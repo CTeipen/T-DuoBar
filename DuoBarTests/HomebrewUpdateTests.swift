@@ -91,9 +91,81 @@ final class HomebrewUpdateTests: XCTestCase {
         await service.check()
         let before = await client.requests()
         XCTAssertEqual(before, 0)
-        await service.check(force: true)
+        let result = await service.check(force: true)
+        XCTAssertEqual(result, .updateAvailable(HomebrewRelease(schema: 1, version: "1.7.0", build: 10)))
         XCTAssertNotNil(service.availableUpdate)
         XCTAssertFalse(notified)
+    }
+
+    @MainActor
+    func testManualCheckReportsUpToDateForEqualOrOlderRelease() async throws {
+        let suite = "HomebrewUpdateTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let client = StubReleaseClient(HomebrewRelease(schema: 1, version: "1.6.0", build: 9))
+        let service = HomebrewUpdateService(client: client, defaults: defaults,
+            currentVersion: "1.6.0", currentBuild: 9, notify: { _ in
+                XCTFail("Manual checks must not send automatic notifications")
+                return false
+            })
+        let equalResult = await service.check(force: true)
+        XCTAssertEqual(equalResult, .upToDate)
+        XCTAssertNil(service.availableUpdate)
+        await client.setRelease(HomebrewRelease(schema: 1, version: "1.5.0", build: 8))
+        let olderResult = await service.check(force: true)
+        XCTAssertEqual(olderResult, .upToDate)
+        XCTAssertNil(service.availableUpdate)
+    }
+
+    @MainActor
+    func testFailedManualCheckDoesNotOfferCachedUpdateAsSuccessfulResult() async throws {
+        let suite = "HomebrewUpdateTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = HomebrewRelease(schema: 1, version: "1.7.0", build: 10)
+        defaults.set(try JSONEncoder().encode(cached), forKey: PreferenceKeys.cachedHomebrewRelease)
+        let client = StubReleaseClient(cached)
+        await client.setFailure()
+        let service = HomebrewUpdateService(client: client, defaults: defaults,
+            currentVersion: "1.6.0", currentBuild: 9, notify: { _ in false })
+        XCTAssertEqual(service.availableUpdate, cached)
+        let result = await service.check(force: true)
+        XCTAssertEqual(result, .failed)
+        XCTAssertNil(service.lastChecked)
+        XCTAssertFalse(service.isChecking)
+    }
+
+    @MainActor
+    func testDialogsIdentifyInstalledVersionAndUpdateTarget() async throws {
+        let suite = "HomebrewUpdateTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let update = HomebrewRelease(schema: 1, version: "1.7.0", build: 12)
+        let service = HomebrewUpdateService(client: StubReleaseClient(update), defaults: defaults,
+            currentVersion: "1.6.1", currentBuild: 11, notify: { _ in false })
+        XCTAssertTrue(service.installedVersionDescription.contains("1.6.1"))
+        XCTAssertTrue(service.installedVersionDescription.contains("11"))
+        let checked = await service.check(force: true)
+        let result = try XCTUnwrap(checked)
+        let prompt = service.makeCheckResultAlert(result)
+        XCTAssertTrue(prompt.messageText.contains("1.7.0"))
+        XCTAssertTrue(prompt.messageText.contains("12"))
+        XCTAssertTrue(prompt.informativeText.contains(service.installedVersionDescription))
+        let latest = service.makeCheckResultAlert(.upToDate)
+        XCTAssertTrue(latest.messageText.contains(service.installedVersionDescription))
+        let failure = service.makeCheckResultAlert(.failed)
+        XCTAssertTrue(failure.informativeText.contains(service.installedVersionDescription))
+    }
+
+    @MainActor
+    func testNotificationIdentifiesSameVersionBuildUpdate() {
+        let update = HomebrewRelease(schema: 1, version: "1.6.1", build: 12)
+        let content = HomebrewUpdateService.makeUpdateNotificationContent(update,
+            currentVersion: "1.6.1", currentBuild: 11)
+        XCTAssertTrue(content.body.contains("1.6.1"))
+        XCTAssertTrue(content.body.contains("11"), "Installed build must be identified")
+        XCTAssertTrue(content.body.contains("12"), "Target build must be identified")
+        XCTAssertEqual(content.categoryIdentifier, HomebrewUpdateService.notificationCategory)
     }
 
     @MainActor

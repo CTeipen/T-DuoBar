@@ -6,6 +6,12 @@ struct HomebrewUpdateSettingsView: View {
 
     var body: some View {
         Section(localized("Application updates")) {
+            HStack {
+                Text(localized("Installed version"))
+                Spacer()
+                Text(service.installedVersionDescription)
+                    .foregroundStyle(.secondary).textSelection(.enabled)
+            }
             Toggle(localized("Check for updates weekly"), isOn: $enabled)
                 .onChange(of: enabled) { value in if value { service.checkIfDue() } }
             Text(localized("Checks run while DuoBar is open, including after launch or waking your Mac."))
@@ -13,8 +19,9 @@ struct HomebrewUpdateSettingsView: View {
             HStack {
                 Button(localized("Check for updates now")) {
                     Task { @MainActor in
-                        await service.check(force: true)
-                        service.offerInstallation()
+                        if let result = await service.check(force: true) {
+                            service.showCheckResult(result)
+                        }
                     }
                 }.disabled(service.isChecking)
                 if service.isChecking { ProgressView().controlSize(.small) }
@@ -25,6 +32,12 @@ struct HomebrewUpdateSettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let update = service.availableUpdate {
+                HStack {
+                    Text(localized("Available version"))
+                    Spacer()
+                    Text(service.versionDescription(for: update))
+                        .foregroundStyle(.secondary).textSelection(.enabled)
+                }
                 Button(localized("Install with Homebrew")) { service.offerInstallation() }
                 Link(localized("Release notes"), destination: update.releaseURL)
             }

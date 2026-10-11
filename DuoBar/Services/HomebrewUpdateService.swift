@@ -21,6 +21,18 @@ final class HomebrewUpdateService: ObservableObject {
     private let notify: (HomebrewRelease) async -> Bool
     private var timer: Timer?
 
+    var installedVersionDescription: String {
+        Self.versionDescription(currentVersion, build: currentBuild)
+    }
+
+    func versionDescription(for release: HomebrewRelease) -> String {
+        Self.versionDescription(release.version, build: release.build)
+    }
+
+    private static func versionDescription(_ version: String, build: Int) -> String {
+        localized("%@ (build %d)", version, build)
+    }
+
     init(client: any HomebrewReleaseFetching = HomebrewReleaseClient(), defaults: UserDefaults = .standard,
          currentVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0",
          currentBuild: Int = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0") ?? 0,
@@ -31,7 +43,9 @@ final class HomebrewUpdateService: ObservableObject {
         self.currentVersion = currentVersion
         self.currentBuild = currentBuild
         self.now = now
-        self.notify = notify ?? Self.sendNotification
+        self.notify = notify ?? { update in
+            await Self.sendNotification(update, currentVersion: currentVersion, currentBuild: currentBuild)
+        }
         lastChecked = defaults.object(forKey: PreferenceKeys.lastUpdateCheck) as? Date
         if let data = defaults.data(forKey: PreferenceKeys.cachedHomebrewRelease),
            let cached = try? HomebrewRelease.decode(data), cached.isNewer(than: currentVersion, build: currentBuild) {
@@ -54,13 +68,14 @@ final class HomebrewUpdateService: ObservableObject {
 
     func checkIfDue() { Task { await check() } }
 
-    func check(force: Bool = false) async {
-        guard !isChecking else { return }
+    @discardableResult
+    func check(force: Bool = false) async -> HomebrewUpdateCheckResult? {
+        guard !isChecking else { return nil }
         let enabled = defaults.object(forKey: PreferenceKeys.weeklyUpdateChecks) as? Bool ?? true
         let date = now()
         guard force || (enabled && WeeklyUpdateSchedule.isDue(now: date,
             lastSuccess: defaults.object(forKey: PreferenceKeys.lastUpdateCheck) as? Date,
-            lastAttempt: defaults.object(forKey: PreferenceKeys.lastUpdateAttempt) as? Date)) else { return }
+            lastAttempt: defaults.object(forKey: PreferenceKeys.lastUpdateAttempt) as? Date)) else { return nil }
         isChecking = true
         defaults.set(date, forKey: PreferenceKeys.lastUpdateAttempt)
         defer { isChecking = false }
@@ -70,27 +85,58 @@ final class HomebrewUpdateService: ObservableObject {
             defaults.set(try JSONEncoder().encode(release), forKey: PreferenceKeys.cachedHomebrewRelease)
             lastChecked = date
             availableUpdate = release.isNewer(than: currentVersion, build: currentBuild) ? release : nil
-            statusMessage = availableUpdate == nil ? localized("You have the latest version") : localized("Update available: %@", release.version)
+            if let update = availableUpdate {
+                statusMessage = localized("Installed: %@. Update available: %@.",
+                    installedVersionDescription, versionDescription(for: update))
+            } else {
+                statusMessage = localized("DuoBar %@ is up to date", installedVersionDescription)
+            }
             let stillEnabled = defaults.object(forKey: PreferenceKeys.weeklyUpdateChecks) as? Bool ?? true
             if !force, stillEnabled, let update = availableUpdate,
                defaults.string(forKey: PreferenceKeys.lastNotifiedUpdate) != update.identifier,
                await notify(update) {
                 defaults.set(update.identifier, forKey: PreferenceKeys.lastNotifiedUpdate)
             }
+            return availableUpdate.map(HomebrewUpdateCheckResult.updateAvailable) ?? .upToDate
         } catch {
             statusMessage = localized("Update check failed. Will retry later.")
+            return .failed
         }
     }
 
     func offerInstallation() {
         guard let update = availableUpdate else { return }
+        showCheckResult(.updateAvailable(update))
+    }
+
+    func showCheckResult(_ result: HomebrewUpdateCheckResult) {
         NSApp.activate(ignoringOtherApps: true)
+        let alert = makeCheckResultAlert(result)
+        let response = alert.runModal()
+        if case .updateAvailable = result, response == .alertFirstButtonReturn { installUpdate() }
+    }
+
+    func makeCheckResultAlert(_ result: HomebrewUpdateCheckResult) -> NSAlert {
         let alert = NSAlert()
-        alert.messageText = localized("Update available: %@", update.version)
-        alert.informativeText = localized("Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded.")
-        alert.addButton(withTitle: localized("Install with Homebrew"))
-        alert.addButton(withTitle: localized("Later"))
-        if alert.runModal() == .alertFirstButtonReturn { installUpdate() }
+        alert.alertStyle = .informational
+        let installed = localized("Installed DuoBar version: %@", installedVersionDescription)
+        switch result {
+        case .updateAvailable(let update):
+            alert.messageText = localized("Update available: %@", versionDescription(for: update))
+            alert.informativeText = installed + "\n\n" + localized("Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded.")
+            alert.addButton(withTitle: localized("Install with Homebrew"))
+            alert.addButton(withTitle: localized("Later"))
+        case .upToDate:
+            alert.messageText = localized("DuoBar %@ is up to date", installedVersionDescription)
+            alert.informativeText = localized("No updates are available.")
+            alert.addButton(withTitle: localized("OK"))
+        case .failed:
+            alert.alertStyle = .warning
+            alert.messageText = localized("Unable to check for updates")
+            alert.informativeText = installed + "\n\n" + localized("Check your internet connection and try again.")
+            alert.addButton(withTitle: localized("OK"))
+        }
+        return alert
     }
 
     func installUpdate() {
@@ -114,17 +160,25 @@ final class HomebrewUpdateService: ObservableObject {
         } catch { statusMessage = localized("Unable to start Homebrew. Use the update command below.") }
     }
 
-    private static func sendNotification(_ update: HomebrewRelease) async -> Bool {
+    static func makeUpdateNotificationContent(_ update: HomebrewRelease, currentVersion: String,
+        currentBuild: Int) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = localized("DuoBar update available")
+        content.body = localized("Installed: %@. Update available: %@.",
+            versionDescription(currentVersion, build: currentBuild), versionDescription(update.version, build: update.build))
+        content.categoryIdentifier = notificationCategory
+        content.userInfo = ["homebrewUpdate": true]
+        return content
+    }
+
+    private static func sendNotification(_ update: HomebrewRelease, currentVersion: String,
+        currentBuild: Int) async -> Bool {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
         if settings.authorizationStatus == .notDetermined {
             guard await BatteryNotificationService.shared.requestPermission() else { return false }
         } else if settings.authorizationStatus == .denied { return false }
-        let content = UNMutableNotificationContent()
-        content.title = localized("DuoBar update available")
-        content.body = localized("Version %@ is ready to install with Homebrew.", update.version)
-        content.categoryIdentifier = notificationCategory
-        content.userInfo = ["homebrewUpdate": true]
+        let content = makeUpdateNotificationContent(update, currentVersion: currentVersion, currentBuild: currentBuild)
         do {
             try await center.add(UNNotificationRequest(identifier: "duobar.update", content: content, trigger: nil))
             return true

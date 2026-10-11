@@ -18,7 +18,13 @@ Starting with 1.6.0, DuoBar checks the published Homebrew manifest weekly while 
 
 Settings → Application updates provides a weekly-check toggle, manual check, installation prompt, release notes and a copyable update command. No update check is performed while DuoBar is closed; a missed check runs after the next launch. Failed checks retry after six hours, not continuously.
 
-## Version 1.6.0 (build 9)
+Starting with 1.6.1, settings always show the installed version and build number. Every manual check shows a dialog: the installed and available versions with an installation button, confirmation that the installed version is current, or a connection error. Weekly update notifications also identify the installed and available versions. Manual-check dialogs do not require macOS notification permission.
+
+## Version 1.6.1 (build 11)
+
+- Installed version and build number in Settings, with the target version when an update is available.
+- An explicit result after each manual update check; installation is not offered from cached data when the check fails.
+- Both installed and available versions in weekly update notifications.
 
 - Battery time estimates until empty or fully charged, displayed inside the popover.
 - Expandable battery details with the reported power-adapter wattage.
@@ -31,7 +37,7 @@ Settings → Application updates provides a weekly-check toggle, manual check, i
 
 ## Experimental DMG
 
-[Download T-DuoBar 1.6.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.6.0/T-DuoBar-1.6.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.6.0)
+[Download T-DuoBar 1.6.1](https://github.com/squazaryu/T-DuoBar/releases/download/v1.6.1/T-DuoBar-1.6.1.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.6.1)
 
 **The DMG is an experimental ad-hoc signed build, not Developer ID signed or Apple notarized.** Quit DuoBar, back up the installed copy, mount the DMG, and drag `DuoBar.app` to Applications. Launch it from Applications. macOS may block a downloaded copy; use [Apple's documented individual-app procedure](https://support.apple.com/en-us/102445) only if you trust the release. Do not disable system protections globally.
 
@@ -51,7 +57,7 @@ The script builds Release, verifies the local signature, installs `/Applications
 
 ## Validation and limitations
 
-The 1.6.0 implementation passed 269 tests; six hardware-dependent tests were skipped. These results do not replace testing on your devices.
+The 1.6.1 implementation passed 273 tests; six hardware-dependent tests were skipped. These results do not replace testing on your devices.
 
 - Battery duration is the estimate supplied by macOS and may be unavailable.
 - Accessory support and individual earbud/case readings depend on the macOS Bluetooth report. Reads occur locally while the accessory section is shown.

@@ -40,6 +40,12 @@ struct HomebrewRelease: Codable, Equatable, Sendable {
 
 enum UpdateCheckError: Error { case invalidManifest, invalidResponse }
 
+enum HomebrewUpdateCheckResult: Equatable {
+    case updateAvailable(HomebrewRelease)
+    case upToDate
+    case failed
+}
+
 struct WeeklyUpdateSchedule {
     static let interval: TimeInterval = 7 * 24 * 60 * 60
     static let retryInterval: TimeInterval = 6 * 60 * 60

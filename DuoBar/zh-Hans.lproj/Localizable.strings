@@ -140,10 +140,20 @@
 
 // Homebrew updates.
 "Application updates" = "应用更新";
+"Installed version" = "已安装版本";
+"Available version" = "可用版本";
+"%@ (build %d)" = "%@（构建 %d）";
+"Installed: %@. Update available: %@." = "已安装：%@。可更新至 %@。";
+"DuoBar %@ is up to date" = "DuoBar %@ 已是最新版本";
+"No updates are available." = "没有可用更新。";
 "Check for updates weekly" = "每周检查更新";
 "Checks run while DuoBar is open, including after launch or waking your Mac." = "DuoBar 运行时检查更新，包括启动或 Mac 唤醒后。";
 "Check for updates now" = "立即检查更新";
 "You have the latest version" = "已安装最新版本";
+"Installed DuoBar version: %@" = "已安装的 DuoBar 版本：%@";
+"Unable to check for updates" = "无法检查更新";
+"Check your internet connection and try again." = "请检查网络连接后重试。";
+"OK" = "好";
 "Update available: %@" = "可用更新：%@";
 "Update check failed. Will retry later." = "更新检查失败，稍后重试。";
 "Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "终端将通过 Homebrew 更新并重启 DuoBar，不升级其他软件包。";

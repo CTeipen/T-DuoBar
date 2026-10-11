@@ -140,10 +140,20 @@
 
 // Homebrew updates.
 "Application updates" = "Оновлення застосунку";
+"Installed version" = "Встановлена версія";
+"Available version" = "Доступна версія";
+"%@ (build %d)" = "%@ (збірка %d)";
+"Installed: %@. Update available: %@." = "Встановлено: %@. Доступне оновлення до %@.";
+"DuoBar %@ is up to date" = "DuoBar %@ — остання версія";
+"No updates are available." = "Оновлень немає.";
 "Check for updates weekly" = "Перевіряти оновлення щотижня";
 "Checks run while DuoBar is open, including after launch or waking your Mac." = "Перевірка працює, коли DuoBar запущено, зокрема після запуску чи пробудження Mac.";
 "Check for updates now" = "Перевірити оновлення зараз";
 "You have the latest version" = "Встановлено актуальну версію";
+"Installed DuoBar version: %@" = "Встановлено версію DuoBar: %@";
+"Unable to check for updates" = "Не вдалося перевірити оновлення";
+"Check your internet connection and try again." = "Перевірте з’єднання з інтернетом і повторіть спробу.";
+"OK" = "ОК";
 "Update available: %@" = "Доступна версія %@";
 "Update check failed. Will retry later." = "Не вдалося перевірити оновлення. Повторимо пізніше.";
 "Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "Terminal оновить DuoBar через Homebrew та перезапустить його. Інші пакети не оновлюються.";

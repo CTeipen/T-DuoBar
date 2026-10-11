@@ -6,7 +6,7 @@ This policy applies to the T-DuoBar fork. Security fixes target the current defa
 
 | Version | Supported |
 | --- | --- |
-| Current default branch (1.6.0) | Yes |
+| Current default branch (1.6.1) | Yes |
 | Historical upstream versions | Refer to the original DuoBar project |
 
 ## Reporting a Vulnerability

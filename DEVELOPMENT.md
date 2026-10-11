@@ -6,7 +6,7 @@ Run `./script/build_and_run.sh --verify` from this directory, or use the Codex
 Run button. Requires full Xcode at `/Applications/Xcode.app`; set
 `DEVELOPER_DIR` if Xcode is installed elsewhere.
 
-The script builds a local Release version (1.6.0, build 9) with an ad-hoc
+The script builds a local Release version (1.6.1, build 11) with an ad-hoc
 signature, verifies it, stops existing DuoBar instances, and installs it in
 `/Applications/DuoBar.app`. The previous installed app is moved intact to
 `~/Library/Application Support/T-DuoBar/Backups/` before replacement. Launch
@@ -57,7 +57,7 @@ The full test suite includes hardware-dependent tests that skip when devices or 
 
 ## Experimental DMG packaging
 
-Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.6.0/`. Existing output is preserved; move it aside before another packaging run.
+Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.6.1/`. Existing output is preserved; move it aside before another packaging run.
 
 The image includes DuoBar.app, an Applications shortcut, the MIT license, and bilingual installation notes. It does not install anything or replace the currently running app. Packaging uses an ad-hoc signature, not Developer ID or notarization. GitHub publication is a separate step.
 
@@ -66,7 +66,7 @@ The image includes DuoBar.app, an Applications shortcut, the MIT license, and bi
 After publishing and verifying a DMG release, prepare the tap with:
 
 ```sh
-./script/publish_homebrew.py 1.6.0 9 --tap-dir /path/to/homebrew-tap
+./script/publish_homebrew.py 1.6.1 11 --tap-dir /path/to/homebrew-tap
 ```
 
 The helper uses GitHub's uploaded-asset SHA-256 and fixed repository/asset URLs. Review, commit and push the cask and manifest together. The app reads https://raw.githubusercontent.com/squazaryu/homebrew-tap/main/updates/t-duobar.json; it checks only versions available in the tap, including our experimental releases.

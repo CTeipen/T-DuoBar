@@ -140,10 +140,20 @@
 
 // Homebrew updates.
 "Application updates" = "Application updates";
+"Installed version" = "Installed version";
+"Available version" = "Available version";
+"%@ (build %d)" = "%@ (build %d)";
+"Installed: %@. Update available: %@." = "Installed: %@. Update available: %@.";
+"DuoBar %@ is up to date" = "DuoBar %@ is up to date";
+"No updates are available." = "No updates are available.";
 "Check for updates weekly" = "Check for updates weekly";
 "Checks run while DuoBar is open, including after launch or waking your Mac." = "Checks run while DuoBar is open, including after launch or waking your Mac.";
 "Check for updates now" = "Check for updates now";
 "You have the latest version" = "You have the latest version";
+"Installed DuoBar version: %@" = "Installed DuoBar version: %@";
+"Unable to check for updates" = "Unable to check for updates";
+"Check your internet connection and try again." = "Check your internet connection and try again.";
+"OK" = "OK";
 "Update available: %@" = "Update available: %@";
 "Update check failed. Will retry later." = "Update check failed. Will retry later.";
 "Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded.";
