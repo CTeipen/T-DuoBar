@@ -42,6 +42,19 @@ final class BatteryNotificationService: NSObject, ObservableObject, UNUserNotifi
         }
     }
 
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void) {
+        let isUpdate = response.notification.request.content.categoryIdentifier == HomebrewUpdateService.notificationCategory
+        let install = response.actionIdentifier == HomebrewUpdateService.installAction
+        if isUpdate && response.actionIdentifier != UNNotificationDismissActionIdentifier {
+            Task { @MainActor in
+                if install { HomebrewUpdateService.shared.installUpdate() }
+                else { HomebrewUpdateService.shared.offerInstallation() }
+            }
+        }
+        completionHandler()
+    }
+
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound])

@@ -137,3 +137,22 @@
 "Channel" = "Channel";
 "IP address" = "IP address";
 "Copy IP address" = "Copy IP address";
+
+// Homebrew updates.
+"Application updates" = "Application updates";
+"Check for updates weekly" = "Check for updates weekly";
+"Checks run while DuoBar is open, including after launch or waking your Mac." = "Checks run while DuoBar is open, including after launch or waking your Mac.";
+"Check for updates now" = "Check for updates now";
+"You have the latest version" = "You have the latest version";
+"Update available: %@" = "Update available: %@";
+"Update check failed. Will retry later." = "Update check failed. Will retry later.";
+"Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded.";
+"Install with Homebrew" = "Install with Homebrew";
+"Later" = "Later";
+"Unable to start Homebrew. Use the update command below." = "Unable to start Homebrew. Use the update command below.";
+"DuoBar update available" = "DuoBar update available";
+"Version %@ is ready to install with Homebrew." = "Version %@ is ready to install with Homebrew.";
+"Last checked" = "Last checked";
+"Release notes" = "Release notes";
+"Copy update command" = "Copy update command";
+"Allow update notifications" = "Allow update notifications";

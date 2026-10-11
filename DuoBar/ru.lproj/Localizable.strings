@@ -137,3 +137,22 @@
 "Channel" = "Канал";
 "IP address" = "IP-адрес";
 "Copy IP address" = "Скопировать IP-адрес";
+
+// Homebrew updates.
+"Application updates" = "Обновления приложения";
+"Check for updates weekly" = "Проверять обновления еженедельно";
+"Checks run while DuoBar is open, including after launch or waking your Mac." = "Проверка работает при запущенном DuoBar, в том числе после запуска или пробуждения Mac.";
+"Check for updates now" = "Проверить обновления сейчас";
+"You have the latest version" = "Установлена актуальная версия";
+"Update available: %@" = "Доступна версия %@";
+"Update check failed. Will retry later." = "Не удалось проверить обновления. Повторим позже.";
+"Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "Terminal обновит DuoBar через Homebrew и перезапустит его. Другие пакеты не обновляются.";
+"Install with Homebrew" = "Установить через Homebrew";
+"Later" = "Позже";
+"Unable to start Homebrew. Use the update command below." = "Не удалось запустить Homebrew. Используйте команду ниже.";
+"DuoBar update available" = "Доступно обновление DuoBar";
+"Version %@ is ready to install with Homebrew." = "Версия %@ готова к установке через Homebrew.";
+"Last checked" = "Последняя проверка";
+"Release notes" = "Что нового";
+"Copy update command" = "Скопировать команду обновления";
+"Allow update notifications" = "Разрешить уведомления об обновлениях";

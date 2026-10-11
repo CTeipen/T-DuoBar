@@ -137,3 +137,22 @@
 "Channel" = "信道";
 "IP address" = "IP 地址";
 "Copy IP address" = "复制 IP 地址";
+
+// Homebrew updates.
+"Application updates" = "应用更新";
+"Check for updates weekly" = "每周检查更新";
+"Checks run while DuoBar is open, including after launch or waking your Mac." = "DuoBar 运行时检查更新，包括启动或 Mac 唤醒后。";
+"Check for updates now" = "立即检查更新";
+"You have the latest version" = "已安装最新版本";
+"Update available: %@" = "可用更新：%@";
+"Update check failed. Will retry later." = "更新检查失败，稍后重试。";
+"Terminal will update DuoBar with Homebrew and restart it. No other packages are upgraded." = "终端将通过 Homebrew 更新并重启 DuoBar，不升级其他软件包。";
+"Install with Homebrew" = "通过 Homebrew 安装";
+"Later" = "稍后";
+"Unable to start Homebrew. Use the update command below." = "无法启动 Homebrew，请使用下方命令。";
+"DuoBar update available" = "DuoBar 更新可用";
+"Version %@ is ready to install with Homebrew." = "版本 %@ 可通过 Homebrew 安装。";
+"Last checked" = "上次检查";
+"Release notes" = "更新说明";
+"Copy update command" = "复制更新命令";
+"Allow update notifications" = "允许更新通知";

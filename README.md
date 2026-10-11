@@ -4,7 +4,21 @@ A community fork of [DuoBar by Mikeli7666](https://github.com/Mikeli7666/DuoBar)
 
 [Русский](README.ru.md) · [Development and local installation](DEVELOPMENT.md) · [Original project](https://github.com/Mikeli7666/DuoBar)
 
-## Version 1.5.0 (build 8)
+## Homebrew installation and updates
+
+```sh
+brew install --cask squazaryu/tap/t-duobar
+brew update
+brew upgrade --cask squazaryu/tap/t-duobar
+```
+
+If DuoBar was installed manually, quit it and back up `/Applications/DuoBar.app` before the first Homebrew install. `--adopt` only accepts an identical copy; do not use `--force` to discard an existing installation.
+
+Starting with 1.6.0, DuoBar checks the published Homebrew manifest weekly while running and after launch/wake when a check is due. It notifies once per new version, subject to macOS notification permission. Click **Install with Homebrew** to open Terminal and run the bundled update script, then restart DuoBar. Updates are not installed without a click. If Homebrew is missing, the script displays instructions instead of installing the package manager automatically.
+
+Settings → Application updates provides a weekly-check toggle, manual check, installation prompt, release notes and a copyable update command. No update check is performed while DuoBar is closed; a missed check runs after the next launch. Failed checks retry after six hours, not continuously.
+
+## Version 1.6.0 (build 9)
 
 - Battery time estimates until empty or fully charged, displayed inside the popover.
 - Expandable battery details with the reported power-adapter wattage.
@@ -17,7 +31,7 @@ A community fork of [DuoBar by Mikeli7666](https://github.com/Mikeli7666/DuoBar)
 
 ## Experimental DMG
 
-[Download T-DuoBar 1.5.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.5.0/T-DuoBar-1.5.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.5.0)
+[Download T-DuoBar 1.6.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.6.0/T-DuoBar-1.6.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.6.0)
 
 **The DMG is an experimental ad-hoc signed build, not Developer ID signed or Apple notarized.** Quit DuoBar, back up the installed copy, mount the DMG, and drag `DuoBar.app` to Applications. Launch it from Applications. macOS may block a downloaded copy; use [Apple's documented individual-app procedure](https://support.apple.com/en-us/102445) only if you trust the release. Do not disable system protections globally.
 
@@ -37,7 +51,7 @@ The script builds Release, verifies the local signature, installs `/Applications
 
 ## Validation and limitations
 
-The 1.5.0 implementation passed 262 tests; six hardware-dependent tests were skipped. These results do not replace testing on your devices.
+The 1.6.0 implementation passed 269 tests; six hardware-dependent tests were skipped. These results do not replace testing on your devices.
 
 - Battery duration is the estimate supplied by macOS and may be unavailable.
 - Accessory support and individual earbud/case readings depend on the macOS Bluetooth report. Reads occur locally while the accessory section is shown.
@@ -46,7 +60,7 @@ The 1.5.0 implementation passed 262 tests; six hardware-dependent tests were ski
 - Wi-Fi details can be withheld by macOS permissions. Device-managed volume may not be adjustable.
 - Low-battery notifications fire on a threshold crossing, not simply on startup below the threshold.
 
-System-status processing is local. There is no backend, tracking, or system-status upload. Selecting a microphone changes the default Core Audio input; the app does not record audio.
+System-status processing is local. The updater makes an HTTPS request to this project’s Homebrew version manifest; it does not upload system-status data. There is no backend, tracking, or system-status upload. Selecting a microphone changes the default Core Audio input; the app does not record audio.
 
 ## Upstream and license
 

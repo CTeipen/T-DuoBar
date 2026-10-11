@@ -29,7 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PreferenceKeys.showAudioOutput: true,
             PreferenceKeys.showMicrophone: false,
             PreferenceKeys.showBatteryTime: true,
-            PreferenceKeys.lowBatteryNotificationThreshold: 20
+            PreferenceKeys.lowBatteryNotificationThreshold: 20,
+            PreferenceKeys.weeklyUpdateChecks: true
         ])
         super.init()
     }
@@ -70,6 +71,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menuBarController = MenuBarController(statusStore: statusStore)
         self.menuBarController = menuBarController
+        HomebrewUpdateService.shared.start()
 
         #if DEBUG
         if MarketingCaptureMode.isEnabled, MarketingCaptureMode.opensPopover {
@@ -98,6 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak statusStore] _ in
             Task { @MainActor in
                 statusStore?.refresh()
+                HomebrewUpdateService.shared.checkIfDue()
             }
         }
     }

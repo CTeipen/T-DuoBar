@@ -19,6 +19,12 @@ enum PreferenceKeys {
     static let lowBatteryNotificationThreshold = "battery.notificationThreshold"
     static let lowBatteryNotificationSound = "battery.notificationSound"
 
+    static let weeklyUpdateChecks = "updates.weeklyChecks"
+    static let lastUpdateCheck = "updates.lastSuccess"
+    static let lastUpdateAttempt = "updates.lastAttempt"
+    static let lastNotifiedUpdate = "updates.lastNotified"
+    static let cachedHomebrewRelease = "updates.cachedRelease"
+
     #if DEBUG
     static let simulateDesktopMac = "debug.simulateDesktopMac"
     #endif

@@ -46,6 +46,7 @@ struct SettingsView: View {
             }
 
             ExtendedSettingsView()
+            HomebrewUpdateSettingsView()
 
             Section(localized("General")) {
                 VStack(alignment: .leading, spacing: 4) {

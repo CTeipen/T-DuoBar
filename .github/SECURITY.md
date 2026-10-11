@@ -6,7 +6,7 @@ This policy applies to the T-DuoBar fork. Security fixes target the current defa
 
 | Version | Supported |
 | --- | --- |
-| Current default branch (1.5.0) | Yes |
+| Current default branch (1.6.0) | Yes |
 | Historical upstream versions | Refer to the original DuoBar project |
 
 ## Reporting a Vulnerability
@@ -24,3 +24,5 @@ Location permission, when requested, is used only to access Wi-Fi SSID informati
 ## Scope
 
 Security issues in T-DuoBar itself are in scope. General macOS, Apple framework, or third-party operating-system vulnerabilities are outside the project's scope unless T-DuoBar directly contributes to the issue.
+
+The weekly version checker requests a public HTTPS manifest from our Homebrew tap. It uploads no system-status data. Installation uses an explicitly selected, checksum-pinned Homebrew cask after user action. The experimental builds are not Developer ID signed or notarized.
