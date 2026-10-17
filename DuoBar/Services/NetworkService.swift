@@ -66,6 +66,7 @@ final class NetworkService: NSObject, @preconcurrency CLLocationManagerDelegate 
         let timer = Timer(timeInterval: 15, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh(reason: .periodic) }
         }
+        timer.tolerance = 1.5
         detailRefreshTimer = timer
         RunLoop.main.add(timer, forMode: .common)
 
@@ -121,7 +122,9 @@ final class NetworkService: NSObject, @preconcurrency CLLocationManagerDelegate 
             rssi: rssi,
             wifiChannel: transport == .wifi && isConnected ? wifiInterface?.wlanChannel()?.channelNumber : nil,
             wifiBand: transport == .wifi && isConnected ? Self.bandName(wifiInterface?.wlanChannel()) : nil,
-            localIPAddress: isConnected ? LocalNetworkAddress.ipv4(interface: activeInterface?.name) : nil
+            localIPAddress: isConnected ? LocalNetworkAddress.ipv4(interface: activeInterface?.name) : nil,
+            ssidAuthorization: SSIDAuthorizationState(locationManager.authorizationStatus),
+            isExpensive: path.isExpensive
         )
         publish(status)
 

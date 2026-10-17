@@ -2,12 +2,53 @@ import SwiftUI
 
 struct AccessoryBatterySection: View {
     @ObservedObject var service: AccessoryBatteryService
+    var onOpenSettings: (() -> Void)? = nil
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(localized("Accessory batteries")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
             if service.accessories.isEmpty {
-                Text(service.isRefreshing ? localized("Reading accessories…") : service.errorMessage ?? localized("No connected accessories"))
-                    .font(.system(size: 10.5)).foregroundStyle(.secondary)
+                emptyState
+            } else {
+                connectedAccessories
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11))
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                StatusRow(symbol: "keyboard", title: localized("Accessory batteries"),
+                    detail: service.isRefreshing ? localized("Reading accessories…")
+                        : service.errorMessage ?? localized("No connected accessories"),
+                    stateText: "", tint: .primary, drawsBackground: false)
+                if let onOpenSettings {
+                    SystemSettingsButton(title: localized("Bluetooth Settings…"), action: onOpenSettings)
+                        .padding(.trailing, 8)
+                }
+            }
+            if service.errorMessage != nil {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(localized("Could not read accessory data. Check the Bluetooth connection and try again."))
+                        .font(.system(size: 10.5)).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button(localized("Try again")) { service.refresh(force: true) }
+                        .buttonStyle(.link).controlSize(.small).disabled(service.isRefreshing)
+                }
+                .padding(.horizontal, 10).padding(.bottom, 10)
+            }
+        }
+    }
+
+    private var connectedAccessories: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(localized("Accessory batteries")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                Spacer(minLength: 2)
+                if let onOpenSettings {
+                    SystemSettingsButton(title: localized("Bluetooth Settings…"), action: onOpenSettings)
+                }
             }
             ForEach(service.accessories) { accessory in
                 HStack(spacing: 9) {
@@ -24,10 +65,7 @@ struct AccessoryBatterySection: View {
                 }.padding(.vertical, 3)
                 if accessory.id != service.accessories.last?.id { Divider().opacity(0.4) }
             }
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
-            .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11))
-            .onAppear { service.start() }
-            .onDisappear { service.stop() }
+        }.padding(10)
     }
 
     private func componentSummary(_ item: AccessoryBattery) -> String {
@@ -35,6 +73,6 @@ struct AccessoryBatterySection: View {
             item.levels[key].map { localized(title) + " " + localized("%d%%", $0) }
         }
         if !values.isEmpty { return values.joined(separator: " · ") }
-        return item.percentage == nil ? localized("Battery reading unavailable") : localized("Connected")
+        return item.percentage == nil ? localized("macOS has not reported a battery level.") : localized("Connected")
     }
 }

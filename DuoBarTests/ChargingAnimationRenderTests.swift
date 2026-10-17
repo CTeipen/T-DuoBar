@@ -117,6 +117,32 @@ final class ChargingAnimationRenderTests: XCTestCase {
     }
 
     @MainActor
+    func testRenderPowerLayoutAtMenuBarSizeAndMagnifiedInBothAppearances() throws {
+        let battery = BatteryStatus(percentage: 80, isCharging: true, isPluggedIn: true,
+            isFullyCharged: false, isAvailable: true)
+        let states: [DuoCenterState] = [.wifi(.strong), .personalHotspot, .ethernet, .headphones, .airPodsPro]
+        let gallery = VStack(spacing: 0) {
+            ForEach([false, true], id: \.self) { dark in
+                HStack(spacing: 18) {
+                    ForEach(states.indices, id: \.self) { index in
+                        VStack(spacing: 12) {
+                            DuoGlyphView(status: self.status(battery: battery), metrics: .standard.sized(88),
+                                animationsEnabled: false, centerStateOverride: states[index], batteryColorCodingEnabled: true)
+                            DuoGlyphView(status: self.status(battery: battery),
+                                animationsEnabled: false, centerStateOverride: states[index], batteryColorCodingEnabled: true)
+                            Text(String(describing: states[index])).font(.system(size: 9))
+                        }.frame(width: 112)
+                    }
+                }
+                .padding(20)
+                .background(dark ? Color.black : Color.white)
+                .environment(\.colorScheme, dark ? .dark : .light)
+            }
+        }
+        try write(gallery, to: "/tmp/DuoBar-1.9-Power-Layout.png")
+    }
+
+    @MainActor
     private func semanticGlyph(_ item: RenderCase) -> some View {
         let battery = BatteryStatus(
             percentage: item.percentage,

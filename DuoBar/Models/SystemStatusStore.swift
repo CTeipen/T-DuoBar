@@ -7,7 +7,7 @@ final class SystemStatusStore: ObservableObject {
     @Published private(set) var laptopRingModeState: LaptopRingModeState
     @Published private(set) var wifiPowerControlError: String?
 
-    let accessoryBatteryService = AccessoryBatteryService()
+    let accessoryBatteryService: AccessoryBatteryService
     private let batteryNotificationService: BatteryNotificationService?
 
     let priorityController = StatusPriorityController()
@@ -29,8 +29,10 @@ final class SystemStatusStore: ObservableObject {
     init(
         startServices: Bool = true,
         deviceContext: DeviceContext? = nil,
-        laptopRingModeController: LaptopRingModeController? = nil
+        laptopRingModeController: LaptopRingModeController? = nil,
+        accessoryBatteryService: AccessoryBatteryService? = nil
     ) {
+        self.accessoryBatteryService = accessoryBatteryService ?? AccessoryBatteryService()
         batteryNotificationService = startServices ? .shared : nil
         batteryService = BatteryService()
         networkService = NetworkService()

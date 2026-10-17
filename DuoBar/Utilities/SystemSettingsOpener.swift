@@ -7,6 +7,8 @@ enum SystemSettingsOpener {
         case network
         case battery
         case sound
+        case bluetooth
+        case locationServices
     }
 
     static func pane(for network: NetworkStatus) -> Pane {
@@ -38,18 +40,27 @@ enum SystemSettingsOpener {
             [
                 "x-apple.systempreferences:com.apple.Sound-Settings.extension",
             ]
+        case .bluetooth:
+            ["x-apple.systempreferences:com.apple.BluetoothSettings"]
+        case .locationServices:
+            ["x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"]
         }
     }
 
     @discardableResult
+    @MainActor
     static func open(_ pane: Pane) -> Bool {
-        let workspace = NSWorkspace.shared
+        open(pane, using: NSWorkspace.shared.open)
+    }
+
+    @discardableResult
+    static func open(_ pane: Pane, using openURL: (URL) -> Bool) -> Bool {
         for string in urlStrings(for: pane) {
-            if let url = URL(string: string), workspace.open(url) {
+            if let url = URL(string: string), openURL(url) {
                 return true
             }
         }
 
-        return workspace.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+        return openURL(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
     }
 }

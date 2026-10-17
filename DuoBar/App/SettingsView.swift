@@ -1,167 +1,39 @@
-import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
-    @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
-    @AppStorage(PreferenceKeys.menuBarIconScale) private var menuBarIconScale = MenuBarIconSize.defaultScale
-    @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
-    @AppStorage(PreferenceKeys.adaptiveRingPriority) private var adaptiveRingPriorityRaw = PerformancePreference.automatic.rawValue
-    @AppStorage(PreferenceKeys.adaptiveRingColorCoding) private var adaptiveRingColorCoding = false
-    @AppStorage(PreferenceKeys.openOnHover) private var openOnHover = false
-    @StateObject private var launchAtLogin = LaunchAtLoginService()
-    @ObservedObject private var adaptiveRingMonitor = AdaptiveRingMonitor.shared
-    private let deviceContextService = DeviceContextService()
-    #if DEBUG
-    @AppStorage(PreferenceKeys.simulateDesktopMac) private var simulateDesktopMac = false
-    #endif
+    private enum Tab: Hashable { case general, notifications, updates }
+    @State private var selectedTab: Tab = .general
+    private let identity = AppIdentity()
 
     var body: some View {
-        Form {
-            Section(localized("Menu Bar")) {
-                Toggle(localized("Show battery percentage in popover"), isOn: $showBatteryPercentage)
-                Toggle(localized("Enable animations"), isOn: $animationsEnabled)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(localized("Icon Size"))
-                    HStack(spacing: 10) {
-                        Text(localized("Small"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Slider(
-                            value: resolvedMenuBarIconScale,
-                            in: MenuBarIconSize.minimumScale...MenuBarIconSize.maximumScale,
-                            step: MenuBarIconSize.step
-                        )
-                        .accessibilityLabel(localized("Menu bar icon size"))
-                        .accessibilityValue(localized("%d%%", Int((MenuBarIconSize.resolve(menuBarIconScale) * 100).rounded())))
-                        Text(localized("Large"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(localized("Adjust DuoBar to better match your menu bar."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+        VStack(spacing: 0) {
+            TabView(selection: $selectedTab) {
+                GeneralSettingsView()
+                    .tabItem { Label(localized("General"), systemImage: "gearshape") }
+                    .tag(Tab.general)
+                NotificationSettingsView()
+                    .tabItem { Label(localized("Notifications"), systemImage: "bell") }
+                    .tag(Tab.notifications)
+                Form { HomebrewUpdateSettingsView() }
+                    .formStyle(.grouped)
+                    .controlSize(.small)
+                    .tabItem { Label(localized("Updates"), systemImage: "arrow.triangle.2.circlepath") }
+                    .tag(Tab.updates)
             }
-
-            ExtendedSettingsView()
-            HomebrewUpdateSettingsView()
-
-            Section(localized("General")) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Toggle(localized("Open on Hover"), isOn: $openOnHover)
-                        .toggleStyle(.switch)
-                    Text(localized("Open DuoBar when the pointer moves over the menu bar icon."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Toggle(
-                    localized("Launch DuoBar at login"),
-                    isOn: Binding(
-                        get: { launchAtLogin.isEnabled },
-                        set: launchAtLogin.setEnabled
-                    )
-                )
-
-                if launchAtLogin.requiresApproval {
-                    Text(localized("Approval is required in System Settings → General → Login Items."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if let errorMessage = launchAtLogin.errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .textSelection(.enabled)
-                }
+            Divider()
+            HStack {
+                Text("\(AppIdentity.name) \(identity.version) (\(identity.build))")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(localized("About T-DuoBar")) { AboutPanel.show() }
+                    .buttonStyle(.link)
             }
-
-            if showsBatteryRingSettings {
-                Section(localized("Battery Ring")) {
-                    Toggle(localized("Battery Color Coding"), isOn: $batteryColorCoding)
-                }
-            }
-
-            if showsAdaptiveRingSettings {
-                Section(localized("Adaptive Ring")) {
-                    Picker(localized("Adaptive Ring Priority"), selection: adaptiveRingPriority) {
-                        ForEach(PerformancePreference.allCases, id: \.self) { preference in
-                            Text(preference.localizedDisplayName).tag(preference)
-                        }
-                    }
-                    Text(localized("Used only when multiple system conditions need attention. Critical conditions can still take priority."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Toggle(localized("Adaptive Ring Color Coding"), isOn: $adaptiveRingColorCoding)
-                }
-            }
-
-            #if DEBUG
-            if !MarketingCaptureMode.isEnabled {
-                DebugPerformanceDiagnosticsView()
-                DebugDuoGlyphTuningView()
-            }
-            #endif
+            .font(.caption)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
-        .formStyle(.grouped)
-        .scenePadding()
-        .frame(width: 420, height: settingsHeight)
-        .navigationTitle(localized("DuoBar Settings"))
-        .onAppear {
-            NSApp.activate(ignoringOtherApps: true)
-            launchAtLogin.refresh()
-            if showsAdaptiveRingSettings {
-                adaptiveRingMonitor.setPreference(adaptiveRingPriority.wrappedValue)
-            }
-        }
-        .onChange(of: adaptiveRingPriorityRaw) { _ in
-            if showsAdaptiveRingSettings {
-                adaptiveRingMonitor.setPreference(adaptiveRingPriority.wrappedValue)
-            }
-        }
-    }
-
-    private var settingsHeight: CGFloat {
-        #if DEBUG
-        MarketingCaptureMode.isEnabled ? 360 : 850
-        #else
-        650
-        #endif
-    }
-
-    private var adaptiveRingPriority: Binding<PerformancePreference> {
-        Binding(
-            get: { PerformancePreference(rawValue: adaptiveRingPriorityRaw) ?? .automatic },
-            set: { adaptiveRingPriorityRaw = $0.rawValue }
-        )
-    }
-
-    private var resolvedMenuBarIconScale: Binding<Double> {
-        Binding(
-            get: { MenuBarIconSize.resolve(menuBarIconScale) },
-            set: { menuBarIconScale = MenuBarIconSize.resolve($0) }
-        )
-    }
-
-    private var showsAdaptiveRingSettings: Bool {
-        #if DEBUG
-        AdaptiveRingSettingsEligibility.isEligible(
-            for: deviceContextService.current(),
-            simulateDesktop: simulateDesktopMac
-        )
-        #else
-        AdaptiveRingSettingsEligibility.isEligible(for: deviceContextService.current())
-        #endif
-    }
-
-    private var showsBatteryRingSettings: Bool {
-        #if DEBUG
-        deviceContextService.current(simulateDesktop: simulateDesktopMac).ringBehavior == .batteryRing
-        #else
-        deviceContextService.current().ringBehavior == .batteryRing
-        #endif
+        .frame(width: 560, height: 630)
+        .navigationTitle(localized("T-DuoBar Settings"))
+        .onAppear { NSApp.activate(ignoringOtherApps: true) }
     }
 }

@@ -276,6 +276,7 @@ final class DuoGlyphStateTests: XCTestCase {
         let scenarios = [
             PreviewScenario(name: "Wi-Fi · 4", status: makeStatus(batteryPercentage: 100, volume: 1)),
             PreviewScenario(name: "Wi-Fi · 2", status: makeStatus(batteryPercentage: 50, volume: 0.5)),
+            PreviewScenario(name: "Hotspot", status: makeStatus(network: DebugNetworkState.personalHotspot.status)),
             PreviewScenario(name: "Weak · 1", status: makeStatus(batteryPercentage: 25, network: wifi(rssi: -84), volume: 0.1)),
             PreviewScenario(name: "Ethernet", status: makeStatus(network: ethernet(), volume: 0.76)),
             PreviewScenario(name: "Offline · mute", status: makeStatus(network: offline(), volume: 0.5, muted: true)),

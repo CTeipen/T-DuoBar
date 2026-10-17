@@ -13,6 +13,7 @@ struct StatusRow: View {
     let detail: String
     let stateText: String
     let tint: Color
+    let drawsBackground: Bool
     var accessory: Accessory = .none
     let trailing: AnyView?
     var onActivate: (() -> Void)?
@@ -24,6 +25,7 @@ struct StatusRow: View {
         detail: String,
         stateText: String,
         tint: Color,
+        drawsBackground: Bool = true,
         accessory: Accessory = .none,
         trailing: AnyView? = nil,
         onActivate: (() -> Void)? = nil,
@@ -34,6 +36,7 @@ struct StatusRow: View {
         self.detail = detail
         self.stateText = stateText
         self.tint = tint
+        self.drawsBackground = drawsBackground
         self.accessory = accessory
         self.trailing = trailing
         self.onActivate = onActivate
@@ -49,7 +52,7 @@ struct StatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 48)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .background(.primary.opacity(drawsBackground ? 0.045 : 0), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 
     @ViewBuilder

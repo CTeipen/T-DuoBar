@@ -61,6 +61,7 @@ final class HomebrewUpdateService: ObservableObject {
         let timer = Timer(timeInterval: 60 * 60, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.check() }
         }
+        timer.tolerance = 60
         self.timer = timer
         RunLoop.main.add(timer, forMode: .common)
         checkIfDue()
@@ -107,6 +108,10 @@ final class HomebrewUpdateService: ObservableObject {
     func offerInstallation() {
         guard let update = availableUpdate else { return }
         showCheckResult(.updateAvailable(update))
+    }
+
+    func checkManually() async {
+        if let result = await check(force: true) { showCheckResult(result) }
     }
 
     func showCheckResult(_ result: HomebrewUpdateCheckResult) {

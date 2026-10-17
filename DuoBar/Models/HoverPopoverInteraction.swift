@@ -19,6 +19,7 @@ struct HoverPopoverInteraction {
     private(set) var isPointerOverStatusItem = false
     private(set) var isPointerOverPopover = false
     private(set) var suppressHoverUntilStatusItemExit = false
+    private(set) var isContextMenuOpen = false
 
     init(isEnabled: Bool = false) {
         self.isEnabled = isEnabled
@@ -37,6 +38,7 @@ struct HoverPopoverInteraction {
 
     mutating func statusItemEntered() -> [HoverPopoverCommand] {
         isPointerOverStatusItem = true
+        guard !isContextMenuOpen else { return [.cancelClose] }
         guard isEnabled else { return [] }
         guard !suppressHoverUntilStatusItemExit else { return [.cancelClose] }
 
@@ -67,6 +69,7 @@ struct HoverPopoverInteraction {
     }
 
     mutating func statusItemClicked() -> [HoverPopoverCommand] {
+        guard !isContextMenuOpen else { return [.cancelClose] }
         switch state {
         case .closed:
             state = .pinned
@@ -100,6 +103,17 @@ struct HoverPopoverInteraction {
         suppressHoverUntilStatusItemExit = isEnabled && isPointerOverStatusItem
         isPointerOverPopover = false
         return [.cancelClose]
+    }
+
+    mutating func contextMenuOpened() -> [HoverPopoverCommand] {
+        isContextMenuOpen = true
+        _ = popoverClosedExternally()
+        return [.cancelClose, .close]
+    }
+
+    mutating func contextMenuClosed() -> [HoverPopoverCommand] {
+        isContextMenuOpen = false
+        return popoverClosedExternally()
     }
 
     private func closeCommandsIfPointerIsOutside() -> [HoverPopoverCommand] {

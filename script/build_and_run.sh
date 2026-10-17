@@ -14,7 +14,7 @@ CONFIGURATION=Release
 xcodebuild -quiet -project "$ROOT_DIR/DuoBar.xcodeproj" -scheme DuoBar \
     -configuration "$CONFIGURATION" -destination 'platform=macOS' \
     -derivedDataPath "$BUILD_DIR" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-    DEVELOPMENT_TEAM= MARKETING_VERSION=1.6.1 CURRENT_PROJECT_VERSION=11 build
+    DEVELOPMENT_TEAM= MARKETING_VERSION=1.9.0 CURRENT_PROJECT_VERSION=18 build
 BUILT_APP="$BUILD_DIR/Build/Products/$CONFIGURATION/DuoBar.app"
 codesign --verify --deep --strict "$BUILT_APP"
 

@@ -6,6 +6,7 @@ struct VolumeStatusRow: View {
     let playbackDeviceIdentifier: String?
     let onSetVolume: (Double) -> Bool
     let onSetMuted: (Bool) -> Bool
+    var drawsBackground = true
 
     @State private var feedbackInteraction = VolumeFeedbackInteraction()
 
@@ -53,7 +54,7 @@ struct VolumeStatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 54)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .background(.primary.opacity(drawsBackground ? 0.045 : 0), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 
     @ViewBuilder

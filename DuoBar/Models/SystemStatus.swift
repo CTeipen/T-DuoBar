@@ -41,6 +41,13 @@ struct BatteryStatus: Equatable, Sendable {
         )
     }
 
+    var powerStateDescription: String {
+        if isFullyCharged { return localized("Fully charged") }
+        if isCharging { return localized("Charging") }
+        if isLowPowerModeEnabled { return localized("Low Power Mode") }
+        return localized(isPluggedIn ? "Power adapter connected" : "Using battery power")
+    }
+
     static let unavailable = BatteryStatus(
         percentage: nil,
         isCharging: false,
@@ -68,6 +75,15 @@ struct NetworkStatus: Equatable, Sendable {
     var wifiChannel: Int? = nil
     var wifiBand: String? = nil
     var localIPAddress: String? = nil
+    var ssidAuthorization: SSIDAuthorizationState = .notDetermined
+    var isExpensive = false
+
+    /// macOS marks Personal Hotspot paths as expensive. This is a presentation
+    /// policy for metered Wi-Fi, not a claim about the access point's hardware.
+    /// SSIDs and private CoreWLAN properties are deliberately not inspected.
+    var usesPersonalHotspotSymbol: Bool {
+        isAvailable && isConnected && transport == .wifi && isWiFiPoweredOn != false && isExpensive
+    }
 
     static let unavailable = NetworkStatus(
         isAvailable: false,

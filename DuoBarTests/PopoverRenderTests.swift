@@ -55,6 +55,35 @@ final class PopoverRenderTests: XCTestCase {
     }
 
     @MainActor
+    func testHeaderStaysAtTopWhilePopoverHostAndContentHeightsDiffer() throws {
+        let store = SystemStatusStore(startServices: false)
+        let view = StatusPopoverView(statusStore: store, onClose: {})
+            .frame(width: 304, height: 600)
+            .background(Color.black)
+            .environment(\.colorScheme, .dark)
+        let host = NSHostingView(rootView: view)
+        host.appearance = NSAppearance(named: .darkAqua)
+        host.frame = NSRect(x: 0, y: 0, width: 304, height: 600)
+        host.layoutSubtreeIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+        host.cacheDisplay(in: host.bounds, to: bitmap)
+        let scale = CGFloat(bitmap.pixelsWide) / host.bounds.width
+        var headerInkPixels = 0
+        for y in 0..<Int(40 * scale) {
+            for x in Int(14 * scale)..<Int(150 * scale) {
+                if let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB),
+                   min(color.redComponent, color.greenComponent, color.blueComponent) > 0.55 {
+                    headerInkPixels += 1
+                }
+            }
+        }
+        let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+        try png.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("T-DuoBar-Top-Aligned-Popover.png"))
+        XCTAssertGreaterThan(headerInkPixels, 20, "The title moved away from the top while the host resized")
+    }
+
+    @MainActor
     func testRenderNativeMenuBarScaleComparison() throws {
         let status = DebugAudioDeviceState.builtIn.status
         let systemStatus = SystemStatus(

@@ -8,5 +8,10 @@ struct DuoBarApp: App {
         Settings {
             SettingsView()
         }
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button(localized("About T-DuoBar")) { AboutPanel.show() }
+            }
+        }
     }
 }

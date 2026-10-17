@@ -14,6 +14,7 @@ enum PreferenceKeys {
     static let showAudioOutput = "menu.showAudioOutput"
     static let showMicrophone = "menu.showMicrophone"
     static let showBatteryTime = "menu.showBatteryTime"
+    static let menuSectionOrder = "menu.sectionOrder"
     static let favoriteOutputUIDs = "audio.favoriteOutputUIDs"
     static let lowBatteryNotificationEnabled = "battery.notificationEnabled"
     static let lowBatteryNotificationThreshold = "battery.notificationThreshold"

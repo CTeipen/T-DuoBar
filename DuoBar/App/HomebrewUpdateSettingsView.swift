@@ -3,6 +3,7 @@ import SwiftUI
 struct HomebrewUpdateSettingsView: View {
     @AppStorage(PreferenceKeys.weeklyUpdateChecks) private var enabled = true
     @ObservedObject private var service = HomebrewUpdateService.shared
+    @State private var showsManualCommand = false
 
     var body: some View {
         Section(localized("Application updates")) {
@@ -19,9 +20,7 @@ struct HomebrewUpdateSettingsView: View {
             HStack {
                 Button(localized("Check for updates now")) {
                     Task { @MainActor in
-                        if let result = await service.check(force: true) {
-                            service.showCheckResult(result)
-                        }
+                        await service.checkManually()
                     }
                 }.disabled(service.isChecking)
                 if service.isChecking { ProgressView().controlSize(.small) }
@@ -41,10 +40,12 @@ struct HomebrewUpdateSettingsView: View {
                 Button(localized("Install with Homebrew")) { service.offerInstallation() }
                 Link(localized("Release notes"), destination: update.releaseURL)
             }
-            Text(HomebrewRelease.updateCommand).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
-            Button(localized("Copy update command")) {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(HomebrewRelease.updateCommand, forType: .string)
+            DisclosureGroup(localized("Manual update command"), isExpanded: $showsManualCommand) {
+                Text(HomebrewRelease.updateCommand).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                Button(localized("Copy update command")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(HomebrewRelease.updateCommand, forType: .string)
+                }
             }
             Button(localized("Allow update notifications")) {
                 Task { @MainActor in _ = await BatteryNotificationService.shared.requestPermission() }

@@ -27,8 +27,12 @@ enum BatteryChargingAnimationProfile {
     // SF Symbols' bold bolt has a measured rendered-height/font-size ratio of 1.16.
     static let boltFontSizeRatio: CGFloat = (50 / 1.16) / 230
     static let boltOpacity = 1.0
-    static let boltRadialOffsetRatio: CGFloat = -24 / 230
+    // Include the bolt's rendered height when clearing the inner ring edge.
+    // The earlier -24/230 placement intersected the arc's stroke.
+    static let boltRadialOffsetRatio: CGFloat = -43 / 230
     static let boltHorizontalOffsetRatio: CGFloat = -3 / 230
+    static let poweredCenterScale: CGFloat = 0.84
+    static let poweredCenterOffsetRatio: CGFloat = 18 / 230
 
     static let inactiveTrackOpacity = 0.24
 

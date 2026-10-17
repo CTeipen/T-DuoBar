@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -8,6 +9,7 @@ final class MenuBarController: NSObject {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private let statusStore: SystemStatusStore
+    private let defaults: UserDefaults
     private var hostingView: PassthroughHostingView<DuoStatusView>?
     private var popoverTrackingView: HoverTrackingContainerView?
     private var lengthAnimationTimer: Timer?
@@ -15,20 +17,23 @@ final class MenuBarController: NSObject {
     private var hoverCloseGeneration: UInt = 0
     private var defaultsObserver: NSObjectProtocol?
     private var applicationResignObserver: NSObjectProtocol?
-    private var hoverInteraction = HoverPopoverInteraction(
-        isEnabled: UserDefaults.standard.bool(forKey: PreferenceKeys.openOnHover)
-    )
+    private var batteryObservation: AnyCancellable?
+    private var hoverInteraction: HoverPopoverInteraction
     private var isInvalidated = false
+    private var isPopoverVisible = false
 
-    init(statusStore: SystemStatusStore) {
+    init(statusStore: SystemStatusStore, defaults: UserDefaults = .standard) {
         self.statusStore = statusStore
+        self.defaults = defaults
+        hoverInteraction = HoverPopoverInteraction(isEnabled: defaults.bool(forKey: PreferenceKeys.openOnHover))
         statusItem = NSStatusBar.system.statusItem(
             withLength: MenuBarIconSize.statusItemWidth(for: MenuBarIconSize.storedScale())
         )
         super.init()
         configureStatusItem()
         configurePopover()
-        observeHoverPreference()
+        observeBatteryStatus()
+        observePreferences()
         observeApplicationActivity()
     }
 
@@ -40,7 +45,7 @@ final class MenuBarController: NSObject {
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         button.image = nil
         button.title = ""
-        button.toolTip = localized("DuoBar system status")
+        updateTooltip(for: statusStore.status.battery)
 
         let rootView = DuoStatusView(statusStore: statusStore) { [weak self] width in
             self?.setStatusItemLength(width)
@@ -63,6 +68,24 @@ final class MenuBarController: NSObject {
         ])
         self.hostingView = hostingView
     }
+
+    private func observeBatteryStatus() {
+        // The existing store already receives battery events. Tooltips must not
+        // introduce a second timer or hardware read, even while the menu is shut.
+        batteryObservation = statusStore.$status.map(\.battery).removeDuplicates().sink { [weak self] battery in
+            guard let self, !self.isInvalidated else { return }
+            self.updateTooltip(for: battery)
+        }
+    }
+
+    private func updateTooltip(for battery: BatteryStatus) {
+        let text = StatusTooltip.text(battery: battery,
+            hasInternalBattery: statusStore.deviceContext.hasInternalBattery,
+            showsRemainingTime: defaults.object(forKey: PreferenceKeys.showBatteryTime) as? Bool ?? true)
+        if statusItem.button?.toolTip != text { statusItem.button?.toolTip = text }
+    }
+
+    var tooltipText: String? { statusItem.button?.toolTip }
 
     private func configurePopover() {
         updatePopoverBehavior()
@@ -104,7 +127,47 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func togglePopover() {
+        guard !isInvalidated else { return }
+        if Self.opensContextMenu(for: NSApp.currentEvent), let event = NSApp.currentEvent,
+           let button = statusItem.button {
+            perform(hoverInteraction.contextMenuOpened())
+            defer { perform(hoverInteraction.contextMenuClosed()) }
+            NSMenu.popUpContextMenu(makeContextMenu(), with: event, for: button)
+            return
+        }
         perform(hoverInteraction.statusItemClicked())
+    }
+
+    static func opensContextMenu(for event: NSEvent?) -> Bool {
+        guard let event else { return false }
+        return event.type == .rightMouseUp || (event.type == .leftMouseUp && event.modifierFlags.contains(.control))
+    }
+
+    func makeContextMenu() -> NSMenu {
+        let menu = NSMenu(title: AppIdentity.name)
+        menu.autoenablesItems = false
+        let settings = NSMenuItem(title: localized("Settings…"), action: #selector(openSettingsFromContextMenu), keyEquivalent: ",")
+        settings.target = self
+        settings.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: nil)
+        menu.addItem(settings)
+        let updates = NSMenuItem(title: localized("Check for updates…"), action: #selector(checkUpdatesFromContextMenu), keyEquivalent: "")
+        updates.target = self
+        updates.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: nil)
+        updates.isEnabled = !HomebrewUpdateService.shared.isChecking
+        menu.addItem(updates)
+        menu.addItem(.separator())
+        let quit = NSMenuItem(title: localized("Quit T-DuoBar"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quit.target = NSApp
+        menu.addItem(quit)
+        return menu
+    }
+
+    @objc private func openSettingsFromContextMenu() {
+        Task { @MainActor in SettingsWindowOpener.open() }
+    }
+
+    @objc private func checkUpdatesFromContextMenu() {
+        Task { @MainActor in await HomebrewUpdateService.shared.checkManually() }
     }
 
     private func showPopover() {
@@ -118,8 +181,9 @@ final class MenuBarController: NSObject {
         // Let the accessory app finish activating and the popover become key
         // before asking CoreLocation to present its native authorization UI.
         DispatchQueue.main.async { [weak self] in
-            guard UserDefaults.standard.object(forKey: PreferenceKeys.showNetwork) as? Bool ?? true else { return }
-            self?.statusStore.requestWiFiSSIDAccess(trigger: .popoverOpened)
+            guard let self, !self.isInvalidated, self.popover.isShown,
+                  self.defaults.object(forKey: PreferenceKeys.showNetwork) as? Bool ?? true else { return }
+            self.statusStore.requestWiFiSSIDAccess(trigger: .popoverOpened)
         }
     }
 
@@ -172,7 +236,7 @@ final class MenuBarController: NSObject {
         pendingHoverClose = nil
     }
 
-    private func observeHoverPreference() {
+    private func observePreferences() {
         defaultsObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: nil,
@@ -180,10 +244,12 @@ final class MenuBarController: NSObject {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
-                let enabled = UserDefaults.standard.bool(forKey: PreferenceKeys.openOnHover)
+                let enabled = self.defaults.bool(forKey: PreferenceKeys.openOnHover)
                 let commands = self.hoverInteraction.setEnabled(enabled)
                 self.updatePopoverBehavior()
                 self.perform(commands)
+                self.updateAccessoryPolling()
+                self.updateTooltip(for: self.statusStore.status.battery)
             }
         }
     }
@@ -211,6 +277,15 @@ final class MenuBarController: NSObject {
         popover.behavior = hoverInteraction.isEnabled ? .applicationDefined : .transient
     }
 
+    private func updateAccessoryPolling() {
+        let enabled = defaults.object(forKey: PreferenceKeys.showAccessories) as? Bool ?? true
+        if !isInvalidated && isPopoverVisible && enabled {
+            statusStore.accessoryBatteryService.start()
+        } else {
+            statusStore.accessoryBatteryService.stop()
+        }
+    }
+
     #if DEBUG
     func setPopoverVisibleForMarketingCapture(_ visible: Bool) {
         guard popover.isShown != visible else { return }
@@ -226,7 +301,7 @@ final class MenuBarController: NSObject {
         guard !isInvalidated else { return }
         lengthAnimationTimer?.invalidate()
 
-        guard UserDefaults.standard.bool(forKey: PreferenceKeys.animationsEnabled) else {
+        guard defaults.bool(forKey: PreferenceKeys.animationsEnabled) else {
             statusItem.length = targetLength
             return
         }
@@ -262,6 +337,10 @@ final class MenuBarController: NSObject {
     func invalidate() {
         guard !isInvalidated else { return }
         isInvalidated = true
+        isPopoverVisible = false
+        batteryObservation?.cancel()
+        batteryObservation = nil
+        statusStore.accessoryBatteryService.stop()
         cancelHoverClose()
         lengthAnimationTimer?.invalidate()
         lengthAnimationTimer = nil
@@ -297,7 +376,19 @@ final class MenuBarController: NSObject {
 }
 
 extension MenuBarController: NSPopoverDelegate {
+    func popoverDidShow(_ notification: Notification) {
+        isPopoverVisible = true
+        updateAccessoryPolling()
+    }
+
+    func popoverWillClose(_ notification: Notification) {
+        isPopoverVisible = false
+        statusStore.accessoryBatteryService.stop()
+    }
+
     func popoverDidClose(_ notification: Notification) {
+        isPopoverVisible = false
+        statusStore.accessoryBatteryService.stop()
         perform(hoverInteraction.popoverClosedExternally())
     }
 }

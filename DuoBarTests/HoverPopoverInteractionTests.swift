@@ -3,6 +3,33 @@ import XCTest
 @testable import DuoBar
 
 final class HoverPopoverInteractionTests: XCTestCase {
+    func testContextMenuClosesPopoverAndSuppressesHoverWhileTracking() {
+        var interaction = HoverPopoverInteraction(isEnabled: true)
+        _ = interaction.statusItemEntered()
+        XCTAssertEqual(interaction.contextMenuOpened(), [.cancelClose, .close])
+        XCTAssertEqual(interaction.state, .closed)
+        XCTAssertTrue(interaction.isContextMenuOpen)
+        _ = interaction.statusItemExited()
+        XCTAssertEqual(interaction.statusItemEntered(), [.cancelClose])
+        XCTAssertEqual(interaction.state, .closed)
+        XCTAssertEqual(interaction.statusItemClicked(), [.cancelClose])
+        _ = interaction.contextMenuClosed()
+        XCTAssertFalse(interaction.isContextMenuOpen)
+        XCTAssertEqual(interaction.statusItemEntered(), [.cancelClose])
+        _ = interaction.statusItemExited()
+        XCTAssertEqual(interaction.statusItemEntered(), [.cancelClose, .open])
+    }
+
+    func testContextMenuDismissalOutsideIconDoesNotBlockNextHover() {
+        var interaction = HoverPopoverInteraction(isEnabled: true)
+        _ = interaction.statusItemClicked()
+        _ = interaction.contextMenuOpened()
+        _ = interaction.statusItemExited()
+        _ = interaction.contextMenuClosed()
+        XCTAssertEqual(interaction.state, .closed)
+        XCTAssertEqual(interaction.statusItemEntered(), [.cancelClose, .open])
+    }
+
     func testEnablingTakesEffectImmediately() {
         var interaction = HoverPopoverInteraction(isEnabled: false)
 

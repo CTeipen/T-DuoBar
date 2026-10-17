@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="1.6.1"
-BUILD_NUMBER="11"
+VERSION="1.9.0"
+BUILD_NUMBER="18"
 BUILD_DIR="${TMPDIR:-/tmp}/T-DuoBar-Package-DerivedData"
 OUTPUT_DIR="$ROOT_DIR/build/releases/$VERSION"
 DMG="$OUTPUT_DIR/T-DuoBar-$VERSION.dmg"
@@ -33,7 +33,7 @@ codesign --verify --deep --strict "$STAGING_DIR/DuoBar.app"
 ln -s /Applications "$STAGING_DIR/Applications"
 cp "$ROOT_DIR/LICENSE" "$STAGING_DIR/LICENSE.txt"
 cat > "$STAGING_DIR/READ ME FIRST.txt" <<'NOTICE'
-T-DuoBar 1.6.1 — experimental community build
+T-DuoBar 1.9.0 — experimental community build
 
 This app has an ad-hoc signature. It is NOT Developer ID signed or Apple notarized.
 This differs from the signed releases of the original DuoBar project.
@@ -43,7 +43,7 @@ Installation:
 2. Keep a backup of your existing DuoBar.app, then drag DuoBar.app to Applications.
 3. Launch it from Applications. Its icon appears in the menu bar; it has no Dock window.
 
-The app retains the original name and bundle identifier, so it replaces the installed
+The app retains the DuoBar.app filename and bundle identifier, so it replaces the installed
 DuoBar and shares its preferences. Do not run both copies simultaneously.
 
 macOS may block an Internet-downloaded copy. If you trust this release and have checked

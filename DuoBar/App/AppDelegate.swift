@@ -105,6 +105,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard !isRunningTests else { return false }
+        AboutPanel.show()
+        return true
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         #if DEBUG
         if let marketingCaptureObserver {

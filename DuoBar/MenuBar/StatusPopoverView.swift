@@ -12,6 +12,7 @@ struct StatusPopoverView: View {
     @AppStorage(PreferenceKeys.showAudioOutput) private var showAudioOutput = true
     @AppStorage(PreferenceKeys.showMicrophone) private var showMicrophone = false
     @AppStorage(PreferenceKeys.showBatteryTime) private var showBatteryTime = true
+    @AppStorage(PreferenceKeys.menuSectionOrder) private var sectionOrder = MenuSectionOrder.defaultValue
     @State private var contentHeight: CGFloat = 316
     private let onHeightChange: (CGFloat) -> Void
     private let onClose: () -> Void
@@ -29,6 +30,9 @@ struct StatusPopoverView: View {
             })
         }
         .frame(width: 304, height: min(contentHeight, maximumHeight))
+        // NSPopover and SwiftUI update their heights on different layout passes.
+        // Fill the host and keep the scroll view at its top during that interval.
+        .frame(maxHeight: .infinity, alignment: .top)
         .onPreferenceChange(PopoverContentHeightKey.self) { height in
             guard height > 0 else { return }
             contentHeight = height
@@ -41,8 +45,15 @@ struct StatusPopoverView: View {
     var content: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("DuoBar")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                Button {
+                    onClose()
+                    AboutPanel.show()
+                } label: {
+                    Text(AppIdentity.name).font(.system(size: 13, weight: .semibold, design: .rounded))
+                }
+                .buttonStyle(.plain)
+                .help(localized("About T-DuoBar"))
+                .accessibilityLabel(localized("About T-DuoBar"))
                 Spacer()
                 DuoGlyphView(
                     status: statusStore.status,
@@ -53,70 +64,8 @@ struct StatusPopoverView: View {
             }
             .padding(.horizontal, 2)
 
-            if showNetwork {
-                StatusDetailSection {
-                    StatusRow(symbol: networkSymbol, title: localized("Network"), detail: networkDetail,
-                        stateText: networkState, tint: .primary, accessory: .disclosure)
-                } content: {
-                    if let toggle = wifiPowerToggle {
-                        HStack { Text(localized("Wi-Fi power")); Spacer(); toggle }
-                    }
-                    if statusStore.status.network.transport == .wifi {
-                        StatusDetailLine(title: "Signal", value: statusStore.status.network.rssi.map { "\($0) dBm" })
-                        StatusDetailLine(title: "Band", value: statusStore.status.network.wifiBand)
-                        StatusDetailLine(title: "Channel", value: statusStore.status.network.wifiChannel.map(String.init))
-                    }
-                    HStack {
-                        StatusDetailLine(title: "IP address", value: statusStore.status.network.localIPAddress)
-                        if let address = statusStore.status.network.localIPAddress {
-                            Button {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(address, forType: .string)
-                            } label: { Image(systemName: "doc.on.doc") }
-                            .buttonStyle(.plain).accessibilityLabel(localized("Copy IP address"))
-                        }
-                    }
-                    Button(localized("Open Network Settings"), action: openNetworkSettings).buttonStyle(.link)
-                }
-            }
-
-            if showVolume {
-                VolumeStatusRow(
-                    volume: statusStore.status.audio.volume,
-                    hasOutputDevice: statusStore.status.audio.defaultOutput != nil,
-                    playbackDeviceIdentifier: statusStore.status.audio.defaultOutput?.uid,
-                    onSetVolume: statusStore.setVolume,
-                    onSetMuted: statusStore.setMuted
-                )
-
-            }
-
-            if showBattery {
-                StatusDetailSection {
-                    BatteryStatusRow(battery: statusStore.status.battery,
-                        showPercentage: showBatteryPercentage, showsDisclosure: true,
-                        showsRemainingTime: showBatteryTime)
-                } content: {
-                    StatusDetailLine(title: "Power source", value: statusStore.status.battery.isAvailable ? localized(statusStore.status.battery.isPluggedIn ? "Power adapter connected" : "Using battery power") : nil)
-                    StatusDetailLine(title: "Adapter power", value: statusStore.status.battery.adapterWatts.map { localized("%d W", $0) })
-                    StatusDetailLine(title: "Charge limit", value: nil)
-                    Button(localized("Open Battery Settings"), action: openBatterySettings).buttonStyle(.link)
-                }
-            }
-
-            if showAccessories { AccessoryBatterySection(service: statusStore.accessoryBatteryService) }
-
-            if showAudioOutput {
-                AudioDevicesSection(title: "Audio Output", symbol: audioOutputSymbol,
-                    devices: statusStore.status.audio.selectableOutputs,
-                    selectedUID: statusStore.status.audio.defaultOutput?.uid, allowsFavorites: true,
-                    onSelect: statusStore.setDefaultOutput, onOpenSettings: openSoundSettings)
-            }
-            if showMicrophone {
-                AudioDevicesSection(title: "Microphone", symbol: "mic",
-                    devices: statusStore.status.audio.availableInputs,
-                    selectedUID: statusStore.status.audio.defaultInput?.uid,
-                    onSelect: statusStore.setDefaultInput, onOpenSettings: openSoundSettings)
+            ForEach(MenuSectionOrder.decode(sectionOrder)) { section in
+                if isVisible(section) { sectionView(section) }
             }
 
             // Development diagnostics belong in the dedicated DEBUG diagnostics
@@ -144,6 +93,129 @@ struct StatusPopoverView: View {
         }
     }
 
+    private func isVisible(_ section: MenuSection) -> Bool {
+        switch section {
+        case .network: showNetwork
+        case .volume: showVolume
+        case .battery: showBattery
+        case .accessories: showAccessories
+        case .audioOutput: showAudioOutput
+        case .microphone: showMicrophone
+        }
+    }
+
+    @ViewBuilder
+    private func sectionView(_ section: MenuSection) -> some View {
+        switch section {
+        case .network:
+            networkSection
+        case .volume:
+            HStack(spacing: 0) {
+                VolumeStatusRow(volume: statusStore.status.audio.volume,
+                    hasOutputDevice: statusStore.status.audio.defaultOutput != nil,
+                    playbackDeviceIdentifier: statusStore.status.audio.defaultOutput?.uid,
+                    onSetVolume: statusStore.setVolume, onSetMuted: statusStore.setMuted, drawsBackground: false)
+                SystemSettingsButton(title: localized("Sound Settings…"), action: openSoundSettings)
+                    .padding(.trailing, 8)
+            }
+            .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11))
+        case .battery:
+            batterySection
+        case .accessories:
+            AccessoryBatterySection(service: statusStore.accessoryBatteryService, onOpenSettings: openBluetoothSettings)
+        case .audioOutput:
+            AudioDevicesSection(title: "Audio Output", symbol: audioOutputSymbol,
+                devices: statusStore.status.audio.selectableOutputs,
+                selectedUID: statusStore.status.audio.defaultOutput?.uid, allowsFavorites: true,
+                onSelect: statusStore.setDefaultOutput, onOpenSettings: openSoundSettings)
+        case .microphone:
+            AudioDevicesSection(title: "Microphone", symbol: "mic",
+                devices: statusStore.status.audio.availableInputs,
+                selectedUID: statusStore.status.audio.defaultInput?.uid,
+                onSelect: statusStore.setDefaultInput, onOpenSettings: openSoundSettings)
+        }
+    }
+
+    private var networkSection: some View {
+        StatusDetailSection(settingsTitle: networkSettingsHint, onOpenSettings: openNetworkSettings) {
+            StatusRow(symbol: networkSymbol, title: localized("Network"), detail: networkDetail,
+                stateText: networkState, tint: .primary, drawsBackground: false, accessory: .disclosure)
+        } content: {
+            if !statusStore.status.network.isAvailable {
+                Text(localized("No network interface is available. Check your connection in System Settings."))
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            if let issue = WiFiNameAvailabilityIssue(network: statusStore.status.network) {
+                Text(issue.message).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                switch issue {
+                case .needsLocationAccess:
+                    Button(localized("Allow access…")) {
+                        statusStore.requestWiFiSSIDAccess(trigger: .popoverOpened)
+                    }.buttonStyle(.link)
+                case .locationAccessDenied, .locationAccessRestricted:
+                    Button(localized("Location Settings…"), action: openLocationSettings).buttonStyle(.link)
+                case .notReported:
+                    EmptyView()
+                }
+            }
+            if let error = statusStore.wifiPowerControlError {
+                Text(error).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            if let toggle = wifiPowerToggle {
+                HStack { Text(localized("Wi-Fi power")); Spacer(); toggle }
+            }
+            if statusStore.status.network.transport == .wifi, statusStore.status.network.isConnected {
+                StatusDetailLine(title: "Signal", value: statusStore.status.network.rssi.map { "\($0) dBm" })
+                StatusDetailLine(title: "Band", value: statusStore.status.network.wifiBand)
+                StatusDetailLine(title: "Channel", value: statusStore.status.network.wifiChannel.map(String.init))
+            }
+            if statusStore.status.network.isConnected {
+                HStack {
+                    StatusDetailLine(title: "IP address", value: statusStore.status.network.localIPAddress)
+                    if let address = statusStore.status.network.localIPAddress {
+                        Button {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(address, forType: .string)
+                        } label: { Image(systemName: "doc.on.doc") }
+                        .buttonStyle(.plain).accessibilityLabel(localized("Copy IP address"))
+                    }
+                }
+            }
+        }
+    }
+
+    private var batterySection: some View {
+        let battery = statusStore.status.battery
+        return StatusDetailSection(settingsTitle: localized("Open Battery Settings"), onOpenSettings: openBatterySettings) {
+            BatteryStatusRow(battery: battery, showPercentage: showBatteryPercentage,
+                showsDisclosure: true, showsRemainingTime: showBatteryTime,
+                hasInternalBattery: statusStore.deviceContext.hasInternalBattery, drawsBackground: false)
+        } content: {
+            if battery.isAvailable {
+                StatusDetailLine(title: "Power source", value: localized(battery.isPluggedIn ? "Power adapter connected" : "Using battery power"))
+                if battery.isPluggedIn {
+                    StatusDetailLine(title: "Adapter power", value: battery.adapterWatts.map { localized("%d W", $0) })
+                    if battery.adapterWatts == nil {
+                        Text(localized("macOS has not reported the adapter power.")).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                if showBatteryTime, battery.remainingTimeMinutes == nil, !battery.isFullyCharged,
+                   !battery.isPluggedIn || battery.isCharging {
+                    Text(localized("macOS has not provided a time estimate yet. Check again after the power source or workload settles."))
+                        .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+                Text(localized("The charge limit is unavailable to T-DuoBar. Check charging options in Battery Settings."))
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(localized(statusStore.deviceContext.hasInternalBattery
+                    ? "Could not read the battery status. Check Battery Settings."
+                    : "This Mac has no internal battery."))
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     @ViewBuilder
     private var settingsAction: some View {
         if #available(macOS 14.0, *) {
@@ -168,24 +240,8 @@ struct StatusPopoverView: View {
     }
 
     private func openSettingsFromApplicationMenu() {
-        NSApp.activate(ignoringOtherApps: true)
-        if let settingsItem = findSettingsMenuItem(in: NSApp.mainMenu), let action = settingsItem.action {
-            NSApp.sendAction(action, to: settingsItem.target, from: settingsItem)
-        }
+        SettingsWindowOpener.open()
         onClose()
-    }
-
-    private func findSettingsMenuItem(in menu: NSMenu?) -> NSMenuItem? {
-        guard let menu else { return nil }
-        for item in menu.items {
-            if item.keyEquivalent == ",", item.keyEquivalentModifierMask.contains(.command) {
-                return item
-            }
-            if let settingsItem = findSettingsMenuItem(in: item.submenu) {
-                return settingsItem
-            }
-        }
-        return nil
     }
 
     private var networkSettingsHint: String {
@@ -209,11 +265,21 @@ struct StatusPopoverView: View {
         onClose()
     }
 
+    private func openBluetoothSettings() {
+        _ = SystemSettingsOpener.open(.bluetooth)
+        onClose()
+    }
+
+    private func openLocationSettings() {
+        _ = SystemSettingsOpener.open(.locationServices)
+        onClose()
+    }
+
     private var networkSymbol: String {
         let network = statusStore.status.network
         guard network.isConnected else { return "network.slash" }
         switch network.transport {
-        case .wifi: return "wifi"
+        case .wifi: return network.usesPersonalHotspotSymbol ? "personalhotspot" : "wifi"
         case .ethernet: return "cable.connector.horizontal"
         case .other: return "ellipsis.circle"
         case .none: return "network.slash"
@@ -243,7 +309,7 @@ struct StatusPopoverView: View {
         if network.isWiFiPoweredOn == false, !network.isConnected { return localized("Off") }
         guard network.isConnected else { return localized("Offline") }
         switch network.transport {
-        case .wifi: return localized("Wi-Fi")
+        case .wifi: return localized(network.usesPersonalHotspotSymbol ? "Personal Hotspot" : "Wi-Fi")
         case .ethernet: return localized("Ethernet")
         case .other: return localized("Connected")
         case .none: return localized("Offline")
@@ -299,6 +365,8 @@ struct BatteryStatusRow: View {
     let showPercentage: Bool
     var showsDisclosure = false
     var showsRemainingTime = true
+    var hasInternalBattery: Bool? = nil
+    var drawsBackground = true
 
     var body: some View {
         HStack(spacing: 11) {
@@ -344,7 +412,7 @@ struct BatteryStatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(minHeight: !showsRemainingTime || battery.remainingTimeDescription == nil ? 48 : 64)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .background(.primary.opacity(drawsBackground ? 0.045 : 0), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 
     var trailingValue: String? {
@@ -353,12 +421,10 @@ struct BatteryStatusRow: View {
     }
 
     var detail: String {
-        guard battery.isAvailable else { return localized("No internal battery") }
-        if battery.isFullyCharged { return localized("Fully charged") }
-        if battery.isCharging { return localized("Charging") }
-        if battery.isLowPowerModeEnabled { return localized("Low Power Mode") }
-        if battery.isPluggedIn { return localized("Power adapter connected") }
-        return localized("Using battery power")
+        guard battery.isAvailable else {
+            return localized(hasInternalBattery == false ? "No internal battery" : "Battery data unavailable")
+        }
+        return battery.powerStateDescription
     }
 
     private var symbol: String {

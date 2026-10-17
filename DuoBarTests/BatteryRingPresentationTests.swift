@@ -262,6 +262,24 @@ final class BatteryRingPresentationTests: XCTestCase {
         )
     }
 
+    func testPowerBoltClearsTheInnerRingAtAllSupportedIconSizes() {
+        for scale in [0.80, 1.00, 1.05] {
+            let metrics = DuoGlyphMetrics.standard.scaled(by: scale)
+            let center = DuoRingGeometry.chargingBoltPoint(metrics: metrics)
+            // Include the full measured SF Symbol ink bounds, not just its
+            // center point; the previous layout put the top of the bolt on the arc.
+            let halfWidth = metrics.ringDiameter * 33 / 230 / 2
+            let halfHeight = metrics.ringDiameter * 50 / 230 / 2
+            let safeRadius = metrics.ringDiameter / 2 - metrics.arcLineWidth - 0.5 * scale
+            for x in [-halfWidth, halfWidth] {
+                for y in [-halfHeight, halfHeight] {
+                    XCTAssertLessThan(hypot(center.x + x, center.y + y - metrics.ringYOffset), safeRadius,
+                        "Bolt intersects the ring at scale \(scale)")
+                }
+            }
+        }
+    }
+
     func testReferenceBoltGeometryScalesAtAllSupportedIconSizes() {
         for scale in [0.80, 1.00, 1.05] {
             let metrics = DuoGlyphMetrics.standard.scaled(by: scale)

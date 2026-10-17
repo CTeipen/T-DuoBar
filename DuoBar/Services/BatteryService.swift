@@ -33,6 +33,7 @@ final class BatteryService {
                 self?.refresh(trigger: .fallback)
             }
         }
+        fallbackTimer.tolerance = 6
         self.fallbackTimer = fallbackTimer
         RunLoop.main.add(fallbackTimer, forMode: .common)
 

@@ -44,6 +44,7 @@ enum DebugNetworkState: String, CaseIterable, Identifiable {
     case disconnected = "Disconnected"
     case wifiDisabled = "Wi-Fi Disabled"
     case ethernet = "Ethernet"
+    case personalHotspot = "Personal Hotspot"
 
     var id: String { rawValue }
 
@@ -61,6 +62,9 @@ enum DebugNetworkState: String, CaseIterable, Identifiable {
             NetworkStatus(isAvailable: true, isConnected: false, transport: .wifi, interfaceName: "en0", isWiFiPoweredOn: false, ssid: nil, rssi: nil)
         case .ethernet:
             NetworkStatus(isAvailable: true, isConnected: true, transport: .ethernet, interfaceName: "en1", isWiFiPoweredOn: true, ssid: nil, rssi: nil)
+        case .personalHotspot:
+            NetworkStatus(isAvailable: true, isConnected: true, transport: .wifi, interfaceName: "en0",
+                isWiFiPoweredOn: true, ssid: "Mobile Hotspot", rssi: -45, isExpensive: true)
         }
     }
 

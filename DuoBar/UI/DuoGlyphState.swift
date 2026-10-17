@@ -2,6 +2,7 @@ import Foundation
 
 enum DuoCenterState: Hashable {
     case wifi(WiFiSignalLevel)
+    case personalHotspot
     case ethernet
     case offline
     case other
@@ -156,7 +157,7 @@ struct DuoGlyphState: Equatable {
 
         switch network.transport {
         case .wifi:
-            return .wifi(network.wifiSignalLevel)
+            return network.usesPersonalHotspotSymbol ? .personalHotspot : .wifi(network.wifiSignalLevel)
         case .ethernet:
             return .ethernet
         case .other:

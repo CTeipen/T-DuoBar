@@ -149,7 +149,9 @@ struct DuoGlyphView: View {
                 animationsEnabled: animationsEnabled,
                 reduceMotion: reduceMotion
             )
-            .offset(y: metrics.wifiYOffset)
+            .scaleEffect(1 + (BatteryChargingAnimationProfile.poweredCenterScale - 1) * clampedBoltProgress)
+            .offset(y: metrics.wifiYOffset
+                + metrics.ringDiameter * BatteryChargingAnimationProfile.poweredCenterOffsetRatio * clampedBoltProgress)
 
             DuoDotRow(
                 activeCount: glyphState.volumeActiveDotCount,
@@ -266,13 +268,9 @@ struct DuoGlyphView: View {
     }
 
     private var chargingBoltOffset: CGSize {
-        let point: CGPoint
-        switch glyphState.batteryPresentation.boltPlacement {
-        case .topGap:
-            point = DuoRingGeometry.chargingBoltPoint(metrics: metrics)
-        case .none:
-            point = .zero
-        }
+        // Keep the exit animation here instead of jumping into the center icon
+        // as soon as the adapter is disconnected.
+        let point = DuoRingGeometry.chargingBoltPoint(metrics: metrics)
         return CGSize(
             width: point.x,
             height: point.y
@@ -281,6 +279,10 @@ struct DuoGlyphView: View {
 
     private var chargingBoltSize: CGFloat {
         metrics.ringDiameter * BatteryChargingAnimationProfile.boltFontSizeRatio
+    }
+
+    private var clampedBoltProgress: CGFloat {
+        min(max(effectiveChargingBoltProgress, 0), 1)
     }
 
     private var chargingBoltOpacity: Double {
@@ -628,6 +630,7 @@ struct DuoCenterGlyph: View {
     private var symbolName: String {
         switch state {
         case .wifi: "wifi"
+        case .personalHotspot: "personalhotspot"
         case .ethernet: "cable.connector.horizontal"
         case .offline: "network.slash"
         case .other: "ellipsis.circle"
@@ -645,7 +648,7 @@ struct DuoCenterGlyph: View {
 
     private var symbolSize: CGFloat {
         switch state {
-        case .ethernet, .other, .airPodsPro, .airPodsMax, .airPods, .headphones, .audioDevice,
+        case .personalHotspot, .ethernet, .other, .airPodsPro, .airPodsMax, .airPods, .headphones, .audioDevice,
              .performanceCPU, .performanceMemory, .performanceThermal:
             size * 0.92
         case .wifi, .offline, .unavailable: size
@@ -786,7 +789,7 @@ private extension DuoCenterState {
     var isTemporaryAudioState: Bool {
         switch self {
         case .airPodsPro, .airPodsMax, .airPods, .headphones, .audioDevice: true
-        case .wifi, .ethernet, .offline, .other, .unavailable,
+        case .wifi, .personalHotspot, .ethernet, .offline, .other, .unavailable,
              .performanceCPU, .performanceMemory, .performanceThermal:
             false
         }

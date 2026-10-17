@@ -22,12 +22,15 @@ struct AudioDevicesSection: View {
     }
 
     var body: some View {
-        StatusDetailSection {
+        StatusDetailSection(settingsTitle: localized("Sound Settings…"), onOpenSettings: onOpenSettings) {
             StatusRow(symbol: symbol, title: localized(title),
                 detail: devices.first(where: { $0.uid == selectedUID })?.name ?? localized("Unavailable"),
-                stateText: "", tint: .primary, accessory: .disclosure)
+                stateText: "", tint: .primary, drawsBackground: false, accessory: .disclosure)
         } content: {
-            if ordered.isEmpty { Text(localized("No audio devices")).foregroundStyle(.secondary) }
+            if ordered.isEmpty {
+                Text(localized("No audio devices found. Check their connection in Sound Settings."))
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
             ForEach(ordered) { device in
                 HStack(spacing: 6) {
                     Button {
@@ -53,7 +56,6 @@ struct AudioDevicesSection: View {
                 }.padding(.vertical, 4)
             }
             if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
-            Button(localized("Sound Settings…"), action: onOpenSettings).buttonStyle(.link)
         }
     }
 }
