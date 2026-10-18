@@ -20,7 +20,17 @@ Settings → Updates provides a weekly-check toggle, manual check, installation 
 
 Starting with 1.6.1, settings always show the installed version and build number. Every manual check shows a dialog: the installed and available versions with an installation button, confirmation that the installed version is current, or a connection error. Weekly update notifications also identify the installed and available versions. Manual-check dialogs do not require macOS notification permission.
 
-## Version 1.9.0 (build 18)
+## Version 1.10.0 (build 22)
+
+- Select the app language in Appearance: System, English, Russian, Ukrainian, Simplified Chinese or Traditional Chinese. Custom labels update without restarting.
+- Optionally hide the empty accessory section. Connected devices return automatically; read failures remain visible.
+- Optionally adjust volume by scrolling over the menu-bar icon. Both new behavior switches default to off.
+- Battery and volume percentages sit beside their titles with consistent typography. The slider uses the available row width.
+- Clicking the empty space between a section's text and chevron now opens and closes its details. System Settings buttons keep their separate action.
+
+No breaking changes or preference migration. Existing settings are retained.
+
+### Earlier improvements (1.9.0)
 
 - Native General, Notifications and Updates settings tabs, plus a right-click menu for settings, update checks and quitting.
 - Reorder the six popover sections with drag handles or Move up / Move down actions. Order and visibility are saved independently.
@@ -44,7 +54,7 @@ Starting with 1.6.1, settings always show the installed version and build number
 
 ## Experimental DMG
 
-[Download T-DuoBar 1.9.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.9.0/T-DuoBar-1.9.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.9.0)
+[Download T-DuoBar 1.10.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.10.0/T-DuoBar-1.10.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.10.0)
 
 **The DMG is an experimental ad-hoc signed build, not Developer ID signed or Apple notarized.** Quit DuoBar, back up the installed copy, mount the DMG, and drag `DuoBar.app` to Applications. Launch it from Applications. macOS may block a downloaded copy; use [Apple's documented individual-app procedure](https://support.apple.com/en-us/102445) only if you trust the release. Do not disable system protections globally.
 
@@ -64,7 +74,7 @@ The script builds Release, verifies the local signature, installs `/Applications
 
 ## Validation and limitations
 
-The 1.9.0 implementation passed 311 tests; six hardware-dependent tests were skipped. Both Release architectures compiled. These results do not replace testing on your devices or every supported macOS version.
+The 1.10.0 implementation passed 320 tests; six hardware-dependent tests were skipped. Both Release architectures compiled. A native hosted interaction test reproduces the former blank-space disclosure bug and verifies its fix. Physical mouse/trackpad scrolling over the installed status item still needs broader manual testing. These results do not replace testing on your devices or every supported macOS version.
 
 - Battery duration is the estimate supplied by macOS and may be unavailable.
 - Accessory support and individual earbud/case readings depend on the macOS Bluetooth report. Reads occur locally while the accessory section is shown.

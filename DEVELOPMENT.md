@@ -6,7 +6,7 @@ Run `./script/build_and_run.sh --verify` from this directory, or use the Codex
 Run button. Requires full Xcode at `/Applications/Xcode.app`; set
 `DEVELOPER_DIR` if Xcode is installed elsewhere.
 
-The script builds a local Release version (1.9.0, build 18) with an ad-hoc
+The script builds a local Release version (1.10.0, build 22) with an ad-hoc
 signature, verifies it, stops existing DuoBar instances, and installs it in
 `/Applications/DuoBar.app`. The previous installed app is moved intact to
 `~/Library/Application Support/T-DuoBar/Backups/` before replacement. Launch
@@ -57,7 +57,7 @@ The full test suite includes hardware-dependent tests that skip when devices or 
 
 ## Experimental DMG packaging
 
-Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.9.0/`. Existing output is preserved; move it aside before another packaging run.
+Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.10.0/`. Existing output is preserved; move it aside before another packaging run.
 
 The image includes DuoBar.app, an Applications shortcut, the MIT license, and bilingual installation notes. It does not install anything or replace the currently running app. Packaging uses an ad-hoc signature, not Developer ID or notarization. GitHub publication is a separate step.
 
@@ -66,7 +66,7 @@ The image includes DuoBar.app, an Applications shortcut, the MIT license, and bi
 After publishing and verifying a DMG release, prepare the tap with:
 
 ```sh
-./script/publish_homebrew.py 1.9.0 18 --tap-dir /path/to/homebrew-tap
+./script/publish_homebrew.py 1.10.0 22 --tap-dir /path/to/homebrew-tap
 ```
 
 The helper uses GitHub's uploaded-asset SHA-256 and fixed repository/asset URLs. Review, commit and push the cask and manifest together. The app reads https://raw.githubusercontent.com/squazaryu/homebrew-tap/main/updates/t-duobar.json; it checks only versions available in the tap, including our experimental releases.
@@ -114,3 +114,27 @@ Build 17 also keeps System Settings actions inside each card's shared background
 The power bolt now clears the ring's inner edge. While it appears, the center glyph scales and moves slightly down using the same animation progress; unplugging restores its normal geometry and fades the bolt at its existing position. Timing, reduced-motion behavior and color preferences remain unchanged. A bounds regression test first failed on the previous geometry and now passes for all supported icon scales. The charging render gallery includes regular Wi-Fi, hotspot, Ethernet and audio glyphs at native menu-bar size and magnified in both appearances.
 
 Build 18 aligns the root scroll view to the top of its hosting area. During disclosure changes, AppKit and SwiftUI may briefly disagree about the popover height; the default center alignment formerly introduced blank space above the title. A render regression exercises that size mismatch and verifies the title remains in the upper strip.
+
+## Local 1.10.0 convenience settings
+
+Appearance → Language selects System, English, Russian, Ukrainian or either Chinese localization. Custom labels, tooltips, About content and new notification text resolve against the selected bundled localization immediately, without changing macOS language preferences or requiring a restart. The setting persists under `appearance.language`. Language changes rebuild the visible content; disclosure expansion is still view-local and is not saved between app restarts. OS-owned UI may follow the system language.
+
+Menu sections → Hide empty accessory section is off by default. When enabled, empty results are omitted but failures remain visible with recovery actions. The retained popover observes accessory service changes directly, so rows return after the next successful report with connected devices. Polling still follows popover visibility and the existing section visibility preference; hiding empty results adds no scan or timer and does not disable discovery while the menu is open.
+
+Behavior → Adjust volume by scrolling over the icon is off by default. An app-local scroll-wheel monitor is installed only while enabled and accepts events over this status button alone. It is removed when disabled or when the controller is invalidated. Discrete steps change volume by 2%; precise input accumulates before applying a step. Natural-scroll inversion is normalized, inertial events are ignored, and accumulated fractions reset across device/gesture/direction changes. Unsupported outputs are left untouched. The existing Core Audio setter performs the write and refreshes actual state; scrolling up from mute starts at a low level. No global input monitor, Accessibility authorization, feedback sound or polling timer is added.
+
+API references: [NSEvent](https://developer.apple.com/documentation/appkit/nsevent), [scroll inversion](https://developer.apple.com/documentation/appkit/nsevent/isdirectioninvertedfromdevice).
+
+Local builds do not update GitHub or Homebrew. Publish the verified DMG and tap
+metadata using the workflow above.
+
+Build 21 groups each volume/battery value beside its title, using a common header
+and baseline at the same font size. The volume slider uses the full text column;
+no empty disclosure slot is reserved in that row. Actual disclosure indicators
+share one fixed-width column. Native popover renders cover both light and dark
+appearances.
+
+Build 22 gives each disclosure button a rectangular interaction shape inside its
+full-width label. Empty space between text and the chevron now toggles details;
+the adjacent System Settings button keeps its independent action. A hosted native
+interaction test exercises the battery icon, blank gap, closing and settings.
