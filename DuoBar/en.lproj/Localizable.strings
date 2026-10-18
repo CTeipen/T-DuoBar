@@ -217,3 +217,27 @@
 "Connected devices appear automatically. Read errors remain visible." = "Connected devices appear automatically. Read errors remain visible.";
 "Adjust volume by scrolling over the icon" = "Adjust volume by scrolling over the icon";
 "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored.";
+"VPN" = "VPN";
+"Connecting…" = "Connecting…";
+"Disconnecting…" = "Disconnecting…";
+"Disconnected" = "Disconnected";
+"Not configured" = "Not configured";
+"Unnamed VPN" = "Unnamed VPN";
+"VPN status unavailable" = "VPN status unavailable";
+"No macOS VPN profiles found" = "No macOS VPN profiles found";
+"Open VPN Settings" = "Open VPN Settings";
+"Checking…" = "Checking…";
+"Reading VPN status…" = "Reading VPN status…";
+"macOS could not read VPN status." = "macOS could not read VPN status.";
+"Interface" = "Interface";
+"Only VPN connections reported by macOS are shown." = "Only VPN connections reported by macOS are shown.";
+
+/* Popover appearance */
+"Classic" = "Classic";
+"Liquid Glass" = "Liquid Glass";
+"Pop-up appearance" = "Pop-up appearance";
+"Background transparency" = "Background transparency";
+"Liquid Glass requires macOS 26 or later." = "Liquid Glass requires macOS 26 or later.";
+"Reduce Transparency is enabled in macOS. The menu uses an opaque background." = "Reduce Transparency is enabled in macOS. The menu uses an opaque background.";
+"Text and controls stay opaque. macOS manages the glass effect." = "Text and controls stay opaque. macOS manages the glass effect.";
+"Preview menu" = "Preview menu";

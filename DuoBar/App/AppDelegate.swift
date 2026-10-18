@@ -18,6 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         UserDefaults.standard.register(defaults: [
             PreferenceKeys.language: AppLanguage.system.rawValue,
+            PreferenceKeys.popoverStyle: PopoverStyle.classic.rawValue,
+            PreferenceKeys.popoverTransparency: PopoverAppearance.defaultTransparency,
             PreferenceKeys.hideEmptyAccessories: false,
             PreferenceKeys.scrollToAdjustVolume: false,
             PreferenceKeys.showBatteryPercentage: true,
@@ -26,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PreferenceKeys.batteryColorCoding: false,
             PreferenceKeys.openOnHover: false,
             PreferenceKeys.showNetwork: true,
+            PreferenceKeys.showVPN: true,
             PreferenceKeys.showVolume: true,
             PreferenceKeys.showBattery: true,
             PreferenceKeys.showAccessories: true,
@@ -106,6 +109,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 HomebrewUpdateService.shared.checkIfDue()
             }
         }
+    }
+
+    func previewPopover() {
+        menuBarController?.previewPopover()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

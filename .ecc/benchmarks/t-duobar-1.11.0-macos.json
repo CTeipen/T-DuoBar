@@ -1,0 +1,202 @@
+{
+  "version": "1.11.0",
+  "build": 29,
+  "date": "2026-10-18",
+  "platform": "macOS 27.2 (26B5112a), arm64",
+  "conditions": {
+    "order": "Classic / Glass / Classic / Glass",
+    "warmup_s": 5,
+    "sample_s": 35,
+    "glass_transparency": 0.7000000000000001,
+    "app_process_reused": true,
+    "classic_1_note": "An accessory appeared during first pass; subsequent passes showed that accessory.",
+    "last_pass_note": "Settings visible at final check; excluded. User did not click but another agent may have changed focus. Cause not established.",
+    "requested_quiet_window_s": 240,
+    "sequence_elapsed_s": 400.485244,
+    "quiet_window_limit": "The sequence exceeded the requested quiet window; no quiet-desktop assumption is made after 240 seconds."
+  },
+  "phases": [
+    {
+      "phase": "classic-1",
+      "duration_s": 35.002404,
+      "window_validated_before": true,
+      "window_validated_after": true,
+      "included": true,
+      "app_cpu_percent_one_core": 0.3332609211641578,
+      "app_child_cpu_s": 0.0,
+      "app_footprint_mib_median": 72.5635757446289,
+      "app_footprint_mib_first": 74.4385757446289,
+      "app_footprint_mib_last": 72.5635757446289,
+      "app_interrupt_wakeups_per_s": 0.3999725276012471,
+      "windowserver_cpu_percent_one_core": 63.99416411254528,
+      "windowserver_rss_mib_median": 116.8359375,
+      "system_gpu_device_utilization_percent_median": 58.0,
+      "system_gpu_device_utilization_percent_min": 53.0,
+      "system_gpu_device_utilization_percent_max": 99.0,
+      "start_offset_s": 0.0,
+      "within_requested_window": true
+    },
+    {
+      "phase": "glass-1",
+      "duration_s": 35.000977,
+      "window_validated_before": true,
+      "window_validated_after": true,
+      "included": true,
+      "app_cpu_percent_one_core": 0.2402835297997539,
+      "app_child_cpu_s": 0.0,
+      "app_footprint_mib_median": 69.8760757446289,
+      "app_footprint_mib_first": 69.8760757446289,
+      "app_footprint_mib_last": 69.8760757446289,
+      "app_interrupt_wakeups_per_s": 0.34284757251204734,
+      "windowserver_cpu_percent_one_core": 64.7594244111185,
+      "windowserver_rss_mib_median": 142.046875,
+      "system_gpu_device_utilization_percent_median": 67.0,
+      "system_gpu_device_utilization_percent_min": 62.0,
+      "system_gpu_device_utilization_percent_max": 72.0,
+      "start_offset_s": 128.103722,
+      "within_requested_window": true
+    },
+    {
+      "phase": "classic-2",
+      "duration_s": 35.005024999999996,
+      "window_validated_before": true,
+      "window_validated_after": true,
+      "included": true,
+      "app_cpu_percent_one_core": 0.29848964255846133,
+      "app_child_cpu_s": 0.0,
+      "app_footprint_mib_median": 73.96980285644531,
+      "app_footprint_mib_first": 74.0010757446289,
+      "app_footprint_mib_last": 73.96980285644531,
+      "app_interrupt_wakeups_per_s": 0.3999425796724899,
+      "windowserver_cpu_percent_one_core": 58.56486665755767,
+      "windowserver_rss_mib_median": 147.1640625,
+      "system_gpu_device_utilization_percent_median": 61.0,
+      "system_gpu_device_utilization_percent_min": 54.0,
+      "system_gpu_device_utilization_percent_max": 67.0,
+      "start_offset_s": 250.692167,
+      "within_requested_window": false
+    },
+    {
+      "phase": "glass-2",
+      "duration_s": 35.005023,
+      "window_validated_before": true,
+      "window_validated_after": false,
+      "included": false,
+      "app_cpu_percent_one_core": 0.8401394279900916,
+      "app_child_cpu_s": 0.0,
+      "app_footprint_mib_median": 70.0088882446289,
+      "app_footprint_mib_first": 71.04792785644531,
+      "app_footprint_mib_last": 69.9698257446289,
+      "app_interrupt_wakeups_per_s": 0.9427218488043844,
+      "windowserver_cpu_percent_one_core": 62.96240958222874,
+      "windowserver_rss_mib_median": 94.4453125,
+      "system_gpu_device_utilization_percent_median": 98.0,
+      "system_gpu_device_utilization_percent_min": 97.0,
+      "system_gpu_device_utilization_percent_max": 99.0,
+      "start_offset_s": 360.485244,
+      "within_requested_window": false
+    }
+  ],
+  "limits": [
+    "Short ordinary desktop comparison, not an isolated lab or leak proof.",
+    "WindowServer and GPU are system-wide, not attributed to DuoBar.",
+    "GPU utilization is an IORegistry driver gauge, not GPU power.",
+    "Power in watts not measured: sudo -n powermetrics required a password.",
+    "No induced sleep or forced VPN disconnection.",
+    "Possible concurrent agent UI activity; no isolation guarantee."
+  ],
+  "idle_fresh": {
+    "duration_s": 35.003134,
+    "condition": "fresh launch, no menu opened by the test; ordinary desktop use allowed",
+    "app_cpu_percent_one_core": 0.07122124264644417,
+    "app_footprint_mib_median": 21.500961303710938,
+    "app_footprint_mib_first": 21.516586303710938,
+    "app_footprint_mib_last": 21.469711303710938
+  },
+  "native_vpn_lifecycle": {
+    "closed_phase_cpu_s": 0.00014016666666671895,
+    "closed_phase_footprint_mib": 4.688072204589844,
+    "closed_phase_interrupts": 1,
+    "closed_phase_s": 5,
+    "cpu_total_s": 2.1866949166666667,
+    "cycles": 500,
+    "elapsed_s": 2.840018125003553,
+    "memory_samples": [
+      {
+        "cycle": 1,
+        "footprint_mib": 3.8442535400390625,
+        "resident_mib": 10.28125
+      },
+      {
+        "cycle": 10,
+        "footprint_mib": 4.3130035400390625,
+        "resident_mib": 10.75
+      },
+      {
+        "cycle": 50,
+        "footprint_mib": 4.3598785400390625,
+        "resident_mib": 10.796875
+      },
+      {
+        "cycle": 100,
+        "footprint_mib": 4.4223785400390625,
+        "resident_mib": 10.859375
+      },
+      {
+        "cycle": 200,
+        "footprint_mib": 4.500526428222656,
+        "resident_mib": 10.921875
+      },
+      {
+        "cycle": 300,
+        "footprint_mib": 4.656822204589844,
+        "resident_mib": 11.046875
+      },
+      {
+        "cycle": 400,
+        "footprint_mib": 4.688072204589844,
+        "resident_mib": 11.078125
+      },
+      {
+        "cycle": 500,
+        "footprint_mib": 4.688072204589844,
+        "resident_mib": 11.078125
+      }
+    ],
+    "observation_failures": 0,
+    "scope": "optimized standalone production VPN service, not UI click-to-display latency",
+    "setup_and_read_ms": {
+      "max": 15.20949999394361,
+      "p50": 5.2100416796747595,
+      "p95": 6.000416673487052
+    },
+    "states": {
+      "Connected": 500
+    },
+    "successful_reads": 500,
+    "unexpected_cached_state_resets": 0
+  },
+  "tests": {
+    "passed": 352,
+    "failed": 0,
+    "hardware_skipped": 6
+  },
+  "leaks_scan": {
+    "limited_by_release_debug_permissions": true,
+    "after_ui_automation": {
+      "objects": 177,
+      "bytes": 8496,
+      "reported_root_classes": "NSAccessibilityCustomAction / AppKit toolbar accessibility handlers"
+    },
+    "after_fresh_launch": {
+      "objects": 0,
+      "bytes": 0
+    },
+    "conclusion": "No leak-freedom claim. Attribution and long-duration behavior not established."
+  },
+  "user_acceptance": {
+    "repeated_click_build_29": "user reports currently OK",
+    "ordinary_lifecycle": "user reports currently OK"
+  },
+  "application_source_commit": "27b4674fbba2196cc34f7ab2f7281c3449bf69d8"
+}

@@ -1,5 +1,7 @@
 enum PreferenceKeys {
     static let language = "appearance.language"
+    static let popoverStyle = "appearance.popoverStyle"
+    static let popoverTransparency = "appearance.popoverTransparency"
     static let hideEmptyAccessories = "menu.hideEmptyAccessories"
     static let scrollToAdjustVolume = "duoBar.scrollToAdjustVolume"
     static let showBatteryPercentage = "showBatteryPercentage"
@@ -11,6 +13,7 @@ enum PreferenceKeys {
     static let openOnHover = "duoBar.openOnHover"
 
     static let showNetwork = "menu.showNetwork"
+    static let showVPN = "menu.showVPN"
     static let showVolume = "menu.showVolume"
     static let showBattery = "menu.showBattery"
     static let showAccessories = "menu.showAccessories"

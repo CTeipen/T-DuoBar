@@ -40,8 +40,15 @@ final class PopoverRenderTests: XCTestCase {
     }
 
     @MainActor
-    func testRenderFinalPopover() throws {
-        let store = SystemStatusStore(startServices: false)
+    func testRenderFinalPopover() async throws {
+        let vpn = VPNStatusService(reader: {
+            VPNStatus(connections: [VPNConnection(id: "preview", name: "Shadowrocket",
+                state: .connected, interfaceName: "utun2")])
+        }, monitor: TestVPNChangeMonitor())
+        vpn.start()
+        defer { vpn.stop() }
+        for _ in 0..<50 where vpn.isRefreshing { try await Task.sleep(for: .milliseconds(10)) }
+        let store = SystemStatusStore(startServices: false, vpnStatusService: vpn)
         store.applyDebugBatteryStatus(BatteryStatus(percentage: 72, isCharging: false,
             isPluggedIn: false, isFullyCharged: false, isAvailable: true, timeToEmptyMinutes: 108))
         store.applyDebugNetworkState(.strong)
@@ -56,6 +63,28 @@ final class PopoverRenderTests: XCTestCase {
                 .background(Color(nsColor: .windowBackgroundColor))
                 .environment(\.colorScheme, scheme)
             try writePNG(view, named: "T-DuoBar-Popover-\(name).png", appearance: appearance)
+        }
+    }
+
+    @MainActor
+    func testRenderAppearanceSettingsInBothThemes() throws {
+        let name = "PopoverRenderTests.Appearance.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        defaults.set("en", forKey: PreferenceKeys.language)
+        defaults.set(0.65, forKey: PreferenceKeys.popoverTransparency)
+        for style in PopoverStyle.allCases {
+            defaults.set(style.rawValue, forKey: PreferenceKeys.popoverStyle)
+            for (label, scheme, appearance) in [
+                ("Light", ColorScheme.light, NSAppearance.Name.aqua),
+                ("Dark", ColorScheme.dark, NSAppearance.Name.darkAqua)
+            ] {
+                let view = GeneralSettingsView(onPreviewPopover: {}).defaultAppStorage(defaults)
+                    .frame(width: 560, height: 590)
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .environment(\.colorScheme, scheme)
+                try writePNG(view, named: "T-DuoBar-Appearance-\(style.rawValue)-\(label).png", appearance: appearance)
+            }
         }
     }
 
@@ -86,6 +115,29 @@ final class PopoverRenderTests: XCTestCase {
         let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
         try png.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("T-DuoBar-Top-Aligned-Popover.png"))
         XCTAssertGreaterThan(headerInkPixels, 20, "The title moved away from the top while the host resized")
+    }
+
+    @MainActor
+    func testRenderVPNDetailsAndUnavailableStates() async throws {
+        let cases: [(String, VPNStatus)] = [
+            ("Connected", VPNStatus(connections: [VPNConnection(id: "vpn", name: "Shadowrocket",
+                state: .connected, interfaceName: "utun2")])),
+            ("Disconnected", VPNStatus(connections: [VPNConnection(id: "vpn", name: "Shadowrocket",
+                state: .disconnected, interfaceName: nil)])),
+            ("No-Profiles", VPNStatus(connections: [])),
+            ("Unavailable", .unavailable)
+        ]
+        for (name, snapshot) in cases {
+            let service = VPNStatusService(reader: { snapshot }, monitor: TestVPNChangeMonitor())
+            service.start()
+            for _ in 0..<50 where service.isRefreshing { try await Task.sleep(for: .milliseconds(10)) }
+            let view = VPNSection(service: service, onOpenSettings: {}, initiallyExpanded: true)
+                .padding(12).frame(width: 304)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, .light)
+            try writePNG(view, named: "T-DuoBar-VPN-\(name).png", appearance: .aqua)
+            service.stop()
+        }
     }
 
     @MainActor

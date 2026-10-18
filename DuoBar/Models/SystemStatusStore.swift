@@ -8,6 +8,7 @@ final class SystemStatusStore: ObservableObject {
     @Published private(set) var wifiPowerControlError: String?
 
     let accessoryBatteryService: AccessoryBatteryService
+    let vpnStatusService: VPNStatusService
     private let batteryNotificationService: BatteryNotificationService?
 
     let priorityController = StatusPriorityController()
@@ -30,9 +31,11 @@ final class SystemStatusStore: ObservableObject {
         startServices: Bool = true,
         deviceContext: DeviceContext? = nil,
         laptopRingModeController: LaptopRingModeController? = nil,
-        accessoryBatteryService: AccessoryBatteryService? = nil
+        accessoryBatteryService: AccessoryBatteryService? = nil,
+        vpnStatusService: VPNStatusService? = nil
     ) {
         self.accessoryBatteryService = accessoryBatteryService ?? AccessoryBatteryService()
+        self.vpnStatusService = vpnStatusService ?? VPNStatusService()
         batteryNotificationService = startServices ? .shared : nil
         batteryService = BatteryService()
         networkService = NetworkService()
@@ -86,6 +89,7 @@ final class SystemStatusStore: ObservableObject {
     }
 
     func refresh() {
+        vpnStatusService.refresh()
         batteryService.refresh()
         networkService.refresh()
         audioOutputService.refresh()

@@ -6,7 +6,7 @@ Run `./script/build_and_run.sh --verify` from this directory, or use the Codex
 Run button. Requires full Xcode at `/Applications/Xcode.app`; set
 `DEVELOPER_DIR` if Xcode is installed elsewhere.
 
-The script builds a local Release version (1.10.0, build 22) with an ad-hoc
+The script builds a local Release version (1.11.0, build 29) with an ad-hoc
 signature, verifies it, stops existing DuoBar instances, and installs it in
 `/Applications/DuoBar.app`. The previous installed app is moved intact to
 `~/Library/Application Support/T-DuoBar/Backups/` before replacement. Launch
@@ -57,7 +57,7 @@ The full test suite includes hardware-dependent tests that skip when devices or 
 
 ## Experimental DMG packaging
 
-Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.10.0/`. Existing output is preserved; move it aside before another packaging run.
+Run `./script/package_dmg.sh`. It builds both arm64 and x86_64, verifies the app signature and version, creates a read-only compressed DMG, verifies the image, and writes SHA256SUMS under `build/releases/1.11.0/`. Existing output is preserved; move it aside before another packaging run.
 
 The image includes DuoBar.app, an Applications shortcut, the MIT license, and bilingual installation notes. It does not install anything or replace the currently running app. Packaging uses an ad-hoc signature, not Developer ID or notarization. GitHub publication is a separate step.
 
@@ -66,7 +66,7 @@ The image includes DuoBar.app, an Applications shortcut, the MIT license, and bi
 After publishing and verifying a DMG release, prepare the tap with:
 
 ```sh
-./script/publish_homebrew.py 1.10.0 22 --tap-dir /path/to/homebrew-tap
+./script/publish_homebrew.py 1.11.0 29 --tap-dir /path/to/homebrew-tap
 ```
 
 The helper uses GitHub's uploaded-asset SHA-256 and fixed repository/asset URLs. Review, commit and push the cask and manifest together. The app reads https://raw.githubusercontent.com/squazaryu/homebrew-tap/main/updates/t-duobar.json; it checks only versions available in the tap, including our experimental releases.
@@ -138,3 +138,91 @@ Build 22 gives each disclosure button a rectangular interaction shape inside its
 full-width label. Empty space between text and the chevron now toggles details;
 the adjacent System Settings button keeps its independent action. A hosted native
 interaction test exercises the battery icon, blank gap, closing and settings.
+
+## Local 1.11.0 VPN information
+
+VPN has a separate, reorderable popover card with status, profile name and optional
+interface details. Older saved orders receive VPN beside Network without changing
+the relative order of existing sections. Its visibility preference is independent
+of Network. Expansion remains view-local.
+
+The read-only source uses configured VPN/IPSec/L2TP services and
+[SCNetworkConnectionGetStatus](https://developer.apple.com/documentation/systemconfiguration/scnetworkconnectiongetstatus(_:)).
+An interface named utun alone is not treated as proof of VPN connectivity. Failed
+reads, unknown states, disconnected profiles and missing profiles are distinct.
+The view does not claim that all traffic passes through the VPN.
+
+The controller starts the VPN service only while the real NSPopover is visible
+and the VPN section is enabled. Changes arrive through
+[SCDynamicStore](https://developer.apple.com/documentation/systemconfiguration/scdynamicstore-gb2)
+notifications. Closing/hiding the section cancels observation; generations reject
+late results and old callbacks. Reads run off the main actor and bursts coalesce.
+There is no VPN polling timer, subprocess, external IP request, connection control,
+Network Extension entitlement or extra authorization prompt.
+
+This VPN iteration is local; the published GitHub/Homebrew release is separate.
+
+Build 24 keeps the last known VPN snapshot while reopening triggers revalidation.
+It no longer flashes an unavailable/gray icon before receiving a fresh result.
+Actual read/observation failures still replace the cached state with unavailable,
+and newly observed disconnections replace a previously connected snapshot.
+
+Build 25 rejects cancelled requests before invoking the reader and propagates
+cancellation to its detached worker. Repeated stop calls and identical snapshots
+do not publish redundant state changes. Three regression tests reproduce these
+issues on build-24 source before checking their fixes.
+
+## Local 1.11.0 optional popover appearance (build 27)
+
+General → Appearance → Pop-up appearance selects Classic or Liquid Glass.
+Classic is the default and retains NSPopover with a solid content background.
+Liquid Glass requires macOS 26 or later and uses a transparent NSPanel containing
+one native NSGlassEffectView in its clear style. Build 26 only tinted NSPopover's
+existing material, which did not produce a sufficiently distinct glass mode.
+The dedicated panel avoids stacking glass over the system popover backdrop.
+
+Both presentations reuse one content controller, including disclosure and scroll
+state. Background transparency controls a separate tint layer, leaving the window
+and its text/controls at full opacity. At 100%, the native glass material remains.
+Preview menu opens the actual status menu from Settings. Style and slider changes
+apply without restarting; changing the selected presentation while visible moves
+the same content to the new window. Late close callbacks from the old popover
+cannot stop observation in a newly opened glass panel.
+
+The glass panel anchors below the status button, fits its screen's visible frame,
+and retains its top position when details expand. Escape, loss of key focus and
+outside mouse clicks dismiss it. Local/global mouse monitors exist only while
+that panel is visible and are removed on close. No global keyboard monitor,
+Accessibility permission or new polling timer is introduced. Hardware observation
+still starts/stops from actual show/close callbacks, not SwiftUI onAppear.
+
+The selection and slider persist under appearance.popoverStyle and
+appearance.popoverTransparency. Invalid styles fall back to Classic; slider
+values are clamped and non-finite values use the default 65%. Older macOS and
+system Reduce Transparency use the opaque Classic presentation without discarding
+the saved selection. Light/dark colors follow the effective appearance.
+
+Native integration tests check the actual selected window/surface, live tint-layer
+alpha changes, unchanged content opacity, reuse of the content controller, VPN
+observation lifetime, late callbacks, Escape dismissal, event-monitor cleanup and
+secondary-screen/expansion geometry. These checks supplement the model and
+settings-render tests; desktop/GPU energy use remains a separate measurement.
+
+Build 28 treats a mouse press on the status button as one owned gesture through
+its mouse-up action. Focus-loss and external mouse monitors must not close the
+glass panel in the middle of that press: resetting the toggle early formerly
+reopened it. Left/right owner presses are protected, a cancelled drag dismisses,
+and keyboard focus loss and outside clicks still dismiss. Deferred key restoration
+for a pinned hover menu is generation-checked and cancelled on close; no timing
+threshold or extra polling timer is used.
+
+Build 29 moves the normal status-button toggle to mouse-down. A local mouse-down
+monitor checks that exact button/window and consumes normal left presses before
+NSWindow/NSButton tracking can transfer focus. The button action mask has no
+left-mouse-up action, so a later release cannot reopen an already closed menu.
+Control-click passes through to the native context-menu action; right-click and
+accessibility/keyboard activation retain their native target/action route. The
+monitor is removed on controller invalidation/deinit. This fixes the controller
+input path rather than depending on panel focus callbacks to arrive in order.
+StatusItemClickTests exercises that controller path, 30 repeated cycles, late
+focus/up events, control-click, unrelated events and invalidation.

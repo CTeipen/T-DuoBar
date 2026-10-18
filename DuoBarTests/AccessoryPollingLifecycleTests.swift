@@ -105,6 +105,7 @@ final class AccessoryPollingLifecycleTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         defaults.set(true, forKey: PreferenceKeys.showAccessories)
+        defaults.set(false, forKey: PreferenceKeys.showVPN)
         let service = AccessoryBatteryService(reportReader: { [] })
         let store = SystemStatusStore(startServices: false, accessoryBatteryService: service)
         let controller = MenuBarController(statusStore: store, defaults: defaults)

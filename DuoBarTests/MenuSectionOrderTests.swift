@@ -11,14 +11,14 @@ final class MenuSectionOrderTests: XCTestCase {
 
     func testOldOrNewPreferencesPreserveKnownOrderAndRecoverMissingSections() {
         let sections = MenuSectionOrder.decode(#"["battery","futureSection","network","battery"]"#)
-        XCTAssertEqual(sections, [.battery, .network, .volume, .accessories, .audioOutput, .microphone])
+        XCTAssertEqual(sections, [.battery, .network, .vpn, .volume, .accessories, .audioOutput, .microphone])
     }
 
     func testMoveWorksInBothDirectionsWithoutLosingOrDuplicatingSections() {
         let batteryFirst = MenuSectionOrder.moving(.battery, to: .network, in: MenuSection.allCases)
-        XCTAssertEqual(batteryFirst, [.battery, .network, .volume, .accessories, .audioOutput, .microphone])
+        XCTAssertEqual(batteryFirst, [.battery, .network, .vpn, .volume, .accessories, .audioOutput, .microphone])
         let networkLast = MenuSectionOrder.moving(.network, to: .microphone, in: batteryFirst)
-        XCTAssertEqual(networkLast, [.battery, .volume, .accessories, .audioOutput, .microphone, .network])
+        XCTAssertEqual(networkLast, [.battery, .vpn, .volume, .accessories, .audioOutput, .microphone, .network])
         XCTAssertEqual(MenuSectionOrder.moving(.network, to: .network, in: networkLast), networkLast)
     }
 
@@ -42,5 +42,12 @@ final class MenuSectionOrderTests: XCTestCase {
         XCTAssertNil(MenuSection(dragIdentifier: "https://example.com/battery"))
         XCTAssertNil(MenuSection(dragIdentifier: "com.mikeli.duobar.menu-section.unknown"))
         XCTAssertEqual(MenuSection(dragIdentifier: MenuSection.battery.dragIdentifier), .battery)
+    }
+
+    func testLegacyOrderAddsVPNBesideNetworkAndExplicitVPNPositionIsRetained() {
+        let legacy = #"["volume","battery","network","accessories","audioOutput","microphone"]"#
+        XCTAssertEqual(MenuSectionOrder.decode(legacy), [.volume, .battery, .network, .vpn, .accessories, .audioOutput, .microphone])
+        let explicit = [.vpn, .volume, .battery, .network, .accessories, .audioOutput, .microphone] as [MenuSection]
+        XCTAssertEqual(MenuSectionOrder.decode(MenuSectionOrder.encode(explicit)), explicit)
     }
 }

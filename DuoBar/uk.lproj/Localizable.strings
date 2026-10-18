@@ -217,3 +217,27 @@
 "Connected devices appear automatically. Read errors remain visible." = "Підключені пристрої з’являться автоматично. Помилки читання залишаться видимими.";
 "Adjust volume by scrolling over the icon" = "Змінювати гучність прокручуванням над значком";
 "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Прокручування вгору збільшує гучність, вниз — зменшує. Інерція трекпада ігнорується.";
+"VPN" = "VPN";
+"Connecting…" = "Підключення…";
+"Disconnecting…" = "Відключення…";
+"Disconnected" = "Відключено";
+"Not configured" = "Не налаштовано";
+"Unnamed VPN" = "VPN без назви";
+"VPN status unavailable" = "Стан VPN недоступний";
+"No macOS VPN profiles found" = "Системні VPN-профілі не знайдено";
+"Open VPN Settings" = "Відкрити параметри VPN";
+"Checking…" = "Перевірка…";
+"Reading VPN status…" = "Зчитування стану VPN…";
+"macOS could not read VPN status." = "Не вдалося отримати стан VPN від macOS.";
+"Interface" = "Інтерфейс";
+"Only VPN connections reported by macOS are shown." = "Показано VPN-з’єднання, про які повідомляє macOS.";
+
+/* Popover appearance */
+"Classic" = "Класичне";
+"Liquid Glass" = "Рідке скло";
+"Pop-up appearance" = "Оформлення pop-up";
+"Background transparency" = "Прозорість тла";
+"Liquid Glass requires macOS 26 or later." = "Рідке скло доступне в macOS 26 і новіших.";
+"Reduce Transparency is enabled in macOS. The menu uses an opaque background." = "У macOS увімкнено «Зменшити прозорість». Тло меню буде непрозорим.";
+"Text and controls stay opaque. macOS manages the glass effect." = "Текст і елементи керування залишаються непрозорими. Ефектом скла керує macOS.";
+"Preview menu" = "Попередній перегляд меню";

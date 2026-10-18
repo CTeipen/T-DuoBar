@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct GeneralSettingsView: View {
+    var onPreviewPopover: (() -> Void)? = nil
     @AppStorage(PreferenceKeys.language) private var languageRaw = AppLanguage.system.rawValue
+    @AppStorage(PreferenceKeys.popoverStyle) private var popoverStyleRaw = PopoverStyle.classic.rawValue
+    @AppStorage(PreferenceKeys.popoverTransparency) private var popoverTransparency = PopoverAppearance.defaultTransparency
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @AppStorage(PreferenceKeys.scrollToAdjustVolume) private var scrollToAdjustVolume = false
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
@@ -26,6 +30,34 @@ struct GeneralSettingsView: View {
                     get: { (AppLanguage(rawValue: languageRaw) ?? .system).rawValue },
                     set: { languageRaw = $0 })) {
                     ForEach(AppLanguage.allCases) { language in Text(language.name).tag(language.rawValue) }
+                }
+                Picker(localized("Pop-up appearance"), selection: popoverStyle) {
+                    ForEach(PopoverStyle.allCases) { style in
+                        Text(style.title).tag(style)
+                            .disabled(style == .liquidGlass && !PopoverStyle.supportsLiquidGlass)
+                    }
+                }
+                if !PopoverStyle.supportsLiquidGlass {
+                    Text(localized("Liquid Glass requires macOS 26 or later."))
+                        .font(.caption).foregroundStyle(.secondary)
+                } else if popoverStyle.wrappedValue == .liquidGlass {
+                    LabeledContent(localized("Background transparency")) {
+                        HStack(spacing: 10) {
+                            Slider(value: resolvedTransparency, in: 0...1, step: 0.05)
+                                .accessibilityLabel(localized("Background transparency"))
+                                .accessibilityValue(transparencyLabel)
+                            Text(transparencyLabel).monospacedDigit()
+                                .foregroundStyle(.secondary).frame(width: 44, alignment: .trailing)
+                        }.frame(width: 220)
+                    }
+                    .disabled(reduceTransparency)
+                    Text(localized(reduceTransparency
+                        ? "Reduce Transparency is enabled in macOS. The menu uses an opaque background."
+                        : "Text and controls stay opaque. macOS manages the glass effect."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if let onPreviewPopover {
+                    Button(localized("Preview menu"), action: onPreviewPopover)
                 }
                 Toggle(localized("Show battery percentage in popover"), isOn: $showBatteryPercentage)
                 Toggle(localized("Enable animations"), isOn: $animationsEnabled)
@@ -106,6 +138,20 @@ struct GeneralSettingsView: View {
 
     private var resolvedIconScale: Binding<Double> {
         Binding(get: { MenuBarIconSize.resolve(iconScale) }, set: { iconScale = MenuBarIconSize.resolve($0) })
+    }
+
+    private var popoverStyle: Binding<PopoverStyle> {
+        Binding(get: { PopoverStyle(rawValue: popoverStyleRaw) ?? .classic },
+            set: { popoverStyleRaw = $0.rawValue })
+    }
+
+    private var resolvedTransparency: Binding<Double> {
+        Binding(get: { PopoverAppearance.resolveTransparency(popoverTransparency) },
+            set: { popoverTransparency = PopoverAppearance.resolveTransparency($0) })
+    }
+
+    private var transparencyLabel: String {
+        localized("%d%%", Int((resolvedTransparency.wrappedValue * 100).rounded()))
     }
 
     private var adaptiveRingPriority: Binding<PerformancePreference> {
