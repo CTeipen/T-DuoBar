@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    var onPreviewPopover: (() -> Void)? = nil
     private enum Tab: Hashable { case general, notifications, updates }
     @State private var selectedTab: Tab = .general
     @AppStorage(PreferenceKeys.language) private var languageRaw = AppLanguage.system.rawValue
@@ -9,7 +10,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selectedTab) {
-                GeneralSettingsView()
+                GeneralSettingsView(onPreviewPopover: onPreviewPopover)
                     .tabItem { Label(localized("General"), systemImage: "gearshape") }
                     .tag(Tab.general)
                 NotificationSettingsView()

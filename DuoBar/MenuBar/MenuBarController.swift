@@ -8,17 +8,24 @@ final class MenuBarController: NSObject {
 
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
+    private var glassPanel: GlassPopoverPanel?
+    private var popoverContentController: NSViewController?
+    private var popoverContentHeight: CGFloat = 316
+    private var isMenuShown: Bool { popover.isShown || glassPanel?.isVisible == true }
     private let statusStore: SystemStatusStore
     private let defaults: UserDefaults
     private var hostingView: PassthroughHostingView<DuoStatusView>?
     private var popoverTrackingView: HoverTrackingContainerView?
+    private var popoverBackgroundView: PopoverBackgroundView?
     private var lengthAnimationTimer: Timer?
     private var pendingHoverClose: DispatchWorkItem?
     private var hoverCloseGeneration: UInt = 0
     private var defaultsObserver: NSObjectProtocol?
     private var applicationResignObserver: NSObjectProtocol?
+    private var accessibilityDisplayObserver: NSObjectProtocol?
     private var batteryObservation: AnyCancellable?
     private var volumeScrollMonitor: Any?
+    private var statusItemMouseMonitor: Any?
     private var volumeScroll = VolumeScrollAccumulator()
     private var lastLanguageRaw: String
     private var hoverInteraction: HoverPopoverInteraction
@@ -36,9 +43,11 @@ final class MenuBarController: NSObject {
         super.init()
         configureStatusItem()
         configurePopover()
+        installStatusItemMouseMonitor()
         observeBatteryStatus()
         observePreferences()
         observeApplicationActivity()
+        observeAccessibilityDisplayOptions()
         updateVolumeScrollMonitor()
     }
 
@@ -47,7 +56,7 @@ final class MenuBarController: NSObject {
 
         button.target = self
         button.action = #selector(togglePopover)
-        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        button.sendAction(on: Self.statusItemActionEvents)
         button.image = nil
         button.title = ""
         updateTooltip(for: statusStore.status.battery)
@@ -91,6 +100,9 @@ final class MenuBarController: NSObject {
     }
 
     var tooltipText: String? { statusItem.button?.toolTip }
+    var menuWindow: NSWindow? {
+        glassPanel?.isVisible == true ? glassPanel : popover.contentViewController?.view.window
+    }
 
     private func configurePopover() {
         updatePopoverBehavior()
@@ -101,12 +113,15 @@ final class MenuBarController: NSObject {
             rootView: StatusPopoverView(statusStore: statusStore, onHeightChange: { [weak self] height in
                 DispatchQueue.main.async {
                     guard let self, !self.isInvalidated,
-                          abs(self.popover.contentSize.height - height) > 0.5 else { return }
-                    self.popover.contentSize = NSSize(width: 304, height: height)
+                          abs(self.popoverContentHeight - height) > 0.5 else { return }
+                    self.popoverContentHeight = height
+                    let size = NSSize(width: 304, height: height)
+                    if self.popover.contentViewController != nil { self.popover.contentSize = size }
+                    self.glassPanel?.resizeContent(to: size)
                 }
             }) { [weak self] in
                 self?.closePopoverFromContent()
-            }
+            }.defaultAppStorage(defaults)
         )
         let trackingView = HoverTrackingContainerView()
         trackingView.onHoverChanged = { [weak self] isInside in
@@ -118,17 +133,27 @@ final class MenuBarController: NSObject {
         }
         let contentViewController = NSViewController()
         contentViewController.view = trackingView
+        let backgroundView = PopoverBackgroundView()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        trackingView.addSubview(backgroundView)
+        popoverBackgroundView = backgroundView
         contentViewController.addChild(hostingController)
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
         trackingView.addSubview(hostingController.view)
         NSLayoutConstraint.activate([
+            backgroundView.leadingAnchor.constraint(equalTo: trackingView.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: trackingView.trailingAnchor),
+            backgroundView.topAnchor.constraint(equalTo: trackingView.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: trackingView.bottomAnchor),
             hostingController.view.leadingAnchor.constraint(equalTo: trackingView.leadingAnchor),
             hostingController.view.trailingAnchor.constraint(equalTo: trackingView.trailingAnchor),
             hostingController.view.topAnchor.constraint(equalTo: trackingView.topAnchor),
             hostingController.view.bottomAnchor.constraint(equalTo: trackingView.bottomAnchor)
         ])
         popover.contentViewController = contentViewController
+        popoverContentController = contentViewController
         popoverTrackingView = trackingView
+        updatePopoverAppearance()
     }
 
     @objc private func togglePopover() {
@@ -143,9 +168,31 @@ final class MenuBarController: NSObject {
         perform(hoverInteraction.statusItemClicked())
     }
 
+    static let statusItemActionEvents: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseUp]
+
+    private func installStatusItemMouseMonitor() {
+        statusItemMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            guard let self else { return event }
+            return self.filterStatusItemMouseDown(event)
+        }
+    }
+
+    /// Intercept before NSWindow/NSButton tracking can transfer focus and hide
+    /// the popup. Consuming this event prevents a second target/action dispatch.
+    func filterStatusItemMouseDown(_ event: NSEvent, relativeTo anchor: NSView? = nil) -> NSEvent? {
+        guard !isInvalidated, !hoverInteraction.isContextMenuOpen,
+              event.type == .leftMouseDown, !event.modifierFlags.contains(.control),
+              let button = anchor ?? statusItem.button,
+              let window = button.window, event.window === window,
+              button.bounds.contains(button.convert(event.locationInWindow, from: nil)) else { return event }
+        perform(hoverInteraction.statusItemClicked(), anchor: button)
+        return nil
+    }
+
     static func opensContextMenu(for event: NSEvent?) -> Bool {
         guard let event else { return false }
-        return event.type == .rightMouseUp || (event.type == .leftMouseUp && event.modifierFlags.contains(.control))
+        return event.type == .rightMouseUp ||
+            ([.leftMouseDown, .leftMouseUp].contains(event.type) && event.modifierFlags.contains(.control))
     }
 
     func makeContextMenu() -> NSMenu {
@@ -175,26 +222,58 @@ final class MenuBarController: NSObject {
         Task { @MainActor in await HomebrewUpdateService.shared.checkManually() }
     }
 
-    private func showPopover() {
-        guard !popover.isShown, let button = statusItem.button else { return }
+    private func showPopover(relativeTo anchor: NSView? = nil) {
+        guard !isMenuShown, let button = anchor ?? statusItem.button, let contentController = popoverContentController else { return }
 
         updatePopoverBehavior()
+        updatePopoverAppearance()
         statusStore.refresh()
         NSApp.activate(ignoringOtherApps: true)
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        popover.contentViewController?.view.window?.makeKey()
+        let size = NSSize(width: 304, height: popoverContentHeight)
+        if usesGlassPanel {
+            popover.contentViewController = nil
+            let panel = glassPanel ?? makeGlassPanel()
+            glassPanel = panel
+            panel.setHostedController(contentController)
+            panel.show(relativeTo: button, contentSize: size)
+        } else {
+            glassPanel?.setHostedController(nil)
+            popover.contentViewController = contentController
+            popover.contentSize = size
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            popover.contentViewController?.view.window?.makeKey()
+        }
         // Let the accessory app finish activating and the popover become key
         // before asking CoreLocation to present its native authorization UI.
         DispatchQueue.main.async { [weak self] in
-            guard let self, !self.isInvalidated, self.popover.isShown,
+            guard let self, !self.isInvalidated, self.isMenuShown,
                   self.defaults.object(forKey: PreferenceKeys.showNetwork) as? Bool ?? true else { return }
             self.statusStore.requestWiFiSSIDAccess(trigger: .popoverOpened)
         }
     }
 
+    func previewPopover(relativeTo anchor: NSView? = nil) {
+        guard !isInvalidated, !isMenuShown else { return }
+        perform(hoverInteraction.statusItemClicked(), anchor: anchor)
+    }
+
+    private var usesGlassPanel: Bool {
+        PopoverAppearance(defaults: defaults).usesLiquidGlass(
+            supportsLiquidGlass: PopoverStyle.supportsLiquidGlass,
+            reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+    }
+
+    private func makeGlassPanel() -> GlassPopoverPanel {
+        let panel = GlassPopoverPanel()
+        panel.onShow = { [weak self] in self?.menuDidShow() }
+        panel.onWillClose = { [weak self] in self?.menuWillClose() }
+        panel.onClose = { [weak self] in self?.menuDidClose() }
+        return panel
+    }
+
     private func closePopover() {
-        guard popover.isShown else { return }
-        popover.performClose(nil)
+        if glassPanel?.isVisible == true { glassPanel?.dismiss() }
+        if popover.isShown { popover.performClose(nil) }
     }
 
     private func closePopoverFromContent() {
@@ -202,12 +281,12 @@ final class MenuBarController: NSObject {
         closePopover()
     }
 
-    private func perform(_ commands: [HoverPopoverCommand]) {
+    private func perform(_ commands: [HoverPopoverCommand], anchor: NSView? = nil) {
         guard !isInvalidated else { return }
         for command in commands {
             switch command {
             case .open:
-                showPopover()
+                showPopover(relativeTo: anchor)
             case .close:
                 closePopover()
             case .scheduleClose:
@@ -252,8 +331,10 @@ final class MenuBarController: NSObject {
                 let enabled = self.defaults.bool(forKey: PreferenceKeys.openOnHover)
                 let commands = self.hoverInteraction.setEnabled(enabled)
                 self.updatePopoverBehavior()
+                self.updatePopoverAppearance()
                 self.perform(commands)
                 self.updateAccessoryPolling()
+                self.updateVPNMonitoring()
                 self.updateTooltip(for: self.statusStore.status.battery)
                 self.updateVolumeScrollMonitor()
                 let language = self.defaults.string(forKey: PreferenceKeys.language) ?? AppLanguage.system.rawValue
@@ -324,6 +405,7 @@ final class MenuBarController: NSObject {
     }
 
     private func updatePopoverBehavior() {
+        popover.animates = defaults.object(forKey: PreferenceKeys.animationsEnabled) as? Bool ?? true
         #if DEBUG
         if MarketingCaptureMode.isEnabled {
             popover.behavior = .applicationDefined
@@ -331,6 +413,26 @@ final class MenuBarController: NSObject {
         }
         #endif
         popover.behavior = hoverInteraction.isEnabled ? .applicationDefined : .transient
+    }
+
+    private func observeAccessibilityDisplayOptions() {
+        accessibilityDisplayObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.updatePopoverAppearance() }
+        }
+    }
+
+    private func updatePopoverAppearance() {
+        guard !isInvalidated else { return }
+        popoverBackgroundView?.fillOpacity = PopoverAppearance(defaults: defaults).backgroundOpacity(
+            supportsLiquidGlass: PopoverStyle.supportsLiquidGlass,
+            reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+        if isMenuShown, usesGlassPanel != (glassPanel?.isVisible == true) {
+            closePopover()
+            previewPopover()
+        }
     }
 
     private func updateAccessoryPolling() {
@@ -342,9 +444,18 @@ final class MenuBarController: NSObject {
         }
     }
 
+    private func updateVPNMonitoring() {
+        let enabled = defaults.object(forKey: PreferenceKeys.showVPN) as? Bool ?? true
+        if !isInvalidated && isPopoverVisible && enabled {
+            statusStore.vpnStatusService.start()
+        } else {
+            statusStore.vpnStatusService.stop()
+        }
+    }
+
     #if DEBUG
     func setPopoverVisibleForMarketingCapture(_ visible: Bool) {
-        guard popover.isShown != visible else { return }
+        guard isMenuShown != visible else { return }
         if visible {
             showPopover()
         } else {
@@ -393,15 +504,22 @@ final class MenuBarController: NSObject {
     func invalidate() {
         guard !isInvalidated else { return }
         isInvalidated = true
+        if let statusItemMouseMonitor { NSEvent.removeMonitor(statusItemMouseMonitor) }
+        statusItemMouseMonitor = nil
         updateVolumeScrollMonitor()
         isPopoverVisible = false
         batteryObservation?.cancel()
         batteryObservation = nil
         statusStore.accessoryBatteryService.stop()
+        statusStore.vpnStatusService.stop()
         cancelHoverClose()
         lengthAnimationTimer?.invalidate()
         lengthAnimationTimer = nil
         popover.performClose(nil)
+        glassPanel?.dismiss()
+        glassPanel?.setHostedController(nil)
+        glassPanel = nil
+        popoverContentController = nil
         if let defaultsObserver {
             NotificationCenter.default.removeObserver(defaultsObserver)
             self.defaultsObserver = nil
@@ -410,6 +528,11 @@ final class MenuBarController: NSObject {
             NotificationCenter.default.removeObserver(applicationResignObserver)
             self.applicationResignObserver = nil
         }
+        if let accessibilityDisplayObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(accessibilityDisplayObserver)
+            self.accessibilityDisplayObserver = nil
+        }
+        popoverBackgroundView = nil
         popoverTrackingView?.removeFromSuperview()
         popoverTrackingView = nil
         hostingView?.removeFromSuperview()
@@ -418,6 +541,7 @@ final class MenuBarController: NSObject {
     }
 
     deinit {
+        if let statusItemMouseMonitor { NSEvent.removeMonitor(statusItemMouseMonitor) }
         if let volumeScrollMonitor { NSEvent.removeMonitor(volumeScrollMonitor) }
         pendingHoverClose?.cancel()
         lengthAnimationTimer?.invalidate()
@@ -427,27 +551,49 @@ final class MenuBarController: NSObject {
         if let applicationResignObserver {
             NotificationCenter.default.removeObserver(applicationResignObserver)
         }
+        if let accessibilityDisplayObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(accessibilityDisplayObserver)
+        }
         if !isInvalidated {
             NSStatusBar.system.removeStatusItem(statusItem)
         }
     }
 }
 
-extension MenuBarController: NSPopoverDelegate {
-    func popoverDidShow(_ notification: Notification) {
+extension MenuBarController {
+    private func menuDidShow() {
         isPopoverVisible = true
         updateAccessoryPolling()
+        updateVPNMonitoring()
     }
 
-    func popoverWillClose(_ notification: Notification) {
+    private func menuWillClose() {
         isPopoverVisible = false
+        updateVPNMonitoring()
         statusStore.accessoryBatteryService.stop()
     }
 
-    func popoverDidClose(_ notification: Notification) {
+    private func menuDidClose() {
         isPopoverVisible = false
+        updateVPNMonitoring()
         statusStore.accessoryBatteryService.stop()
         perform(hoverInteraction.popoverClosedExternally())
+    }
+}
+
+extension MenuBarController: NSPopoverDelegate {
+    func popoverDidShow(_ notification: Notification) {
+        guard glassPanel?.isVisible != true else { return }
+        menuDidShow()
+    }
+    func popoverWillClose(_ notification: Notification) {
+        guard glassPanel?.isVisible != true else { return }
+        menuWillClose()
+    }
+    func popoverDidClose(_ notification: Notification) {
+        // A closing classic popover can finish its animation after glass opens.
+        guard glassPanel?.isVisible != true else { return }
+        menuDidClose()
     }
 }
 

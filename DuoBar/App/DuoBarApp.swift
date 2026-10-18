@@ -7,7 +7,7 @@ struct DuoBarApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView()
+            SettingsView(onPreviewPopover: appDelegate.previewPopover)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

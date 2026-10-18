@@ -5,6 +5,7 @@ enum SystemSettingsOpener {
     enum Pane: Equatable, Sendable {
         case wifi
         case network
+        case vpn
         case battery
         case sound
         case bluetooth
@@ -31,6 +32,11 @@ enum SystemSettingsOpener {
             [
                 "x-apple.systempreferences:com.apple.Network-Settings.extension",
                 "x-apple.systempreferences:com.apple.wifi-settings-extension",
+            ]
+        case .vpn:
+            [
+                "x-apple.systempreferences:com.apple.NetworkExtensionSettingsUI.NESettingsUIExtension",
+                "x-apple.systempreferences:com.apple.Network-Settings.extension",
             ]
         case .battery:
             [

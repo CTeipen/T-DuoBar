@@ -217,3 +217,27 @@
 "Connected devices appear automatically. Read errors remain visible." = "Подключённые устройства появятся автоматически. Ошибки чтения останутся видны.";
 "Adjust volume by scrolling over the icon" = "Менять громкость прокруткой по значку";
 "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Прокрутка вверх увеличивает громкость, вниз — уменьшает. Инерция трекпада игнорируется.";
+"VPN" = "VPN";
+"Connecting…" = "Подключение…";
+"Disconnecting…" = "Отключение…";
+"Disconnected" = "Отключён";
+"Not configured" = "Не настроен";
+"Unnamed VPN" = "VPN без названия";
+"VPN status unavailable" = "Состояние VPN недоступно";
+"No macOS VPN profiles found" = "Системные VPN-профили не найдены";
+"Open VPN Settings" = "Открыть настройки VPN";
+"Checking…" = "Проверка…";
+"Reading VPN status…" = "Чтение состояния VPN…";
+"macOS could not read VPN status." = "Не удалось получить состояние VPN от macOS.";
+"Interface" = "Интерфейс";
+"Only VPN connections reported by macOS are shown." = "Показаны VPN-подключения, о которых сообщает macOS.";
+
+/* Popover appearance */
+"Classic" = "Классическое";
+"Liquid Glass" = "Жидкое стекло";
+"Pop-up appearance" = "Оформление pop-up";
+"Background transparency" = "Прозрачность фона";
+"Liquid Glass requires macOS 26 or later." = "Жидкое стекло доступно в macOS 26 и новее.";
+"Reduce Transparency is enabled in macOS. The menu uses an opaque background." = "В macOS включено «Уменьшить прозрачность». Фон меню будет непрозрачным.";
+"Text and controls stay opaque. macOS manages the glass effect." = "Текст и элементы управления остаются непрозрачными. Эффект стекла управляется macOS.";
+"Preview menu" = "Предпросмотр меню";

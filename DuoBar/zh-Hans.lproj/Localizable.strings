@@ -217,3 +217,27 @@
 "Connected devices appear automatically. Read errors remain visible." = "已连接的设备会自动显示。读取错误仍会显示。";
 "Adjust volume by scrolling over the icon" = "在图标上滚动以调节音量";
 "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "向上滚动提高音量，向下滚动降低音量。忽略触控板惯性滚动。";
+"VPN" = "VPN";
+"Connecting…" = "正在连接…";
+"Disconnecting…" = "正在断开…";
+"Disconnected" = "未连接";
+"Not configured" = "未配置";
+"Unnamed VPN" = "未命名的 VPN";
+"VPN status unavailable" = "VPN 状态不可用";
+"No macOS VPN profiles found" = "未找到 macOS VPN 配置";
+"Open VPN Settings" = "打开 VPN 设置";
+"Checking…" = "正在检查…";
+"Reading VPN status…" = "正在读取 VPN 状态…";
+"macOS could not read VPN status." = "无法从 macOS 获取 VPN 状态。";
+"Interface" = "接口";
+"Only VPN connections reported by macOS are shown." = "仅显示 macOS 报告的 VPN 连接。";
+
+/* Popover appearance */
+"Classic" = "经典";
+"Liquid Glass" = "液态玻璃";
+"Pop-up appearance" = "弹出菜单外观";
+"Background transparency" = "背景透明度";
+"Liquid Glass requires macOS 26 or later." = "液态玻璃需要 macOS 26 或更高版本。";
+"Reduce Transparency is enabled in macOS. The menu uses an opaque background." = "macOS 已启用“降低透明度”。菜单将使用不透明背景。";
+"Text and controls stay opaque. macOS manages the glass effect." = "文字和控件保持不透明。玻璃效果由 macOS 管理。";
+"Preview menu" = "预览菜单";

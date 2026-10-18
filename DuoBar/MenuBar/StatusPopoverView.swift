@@ -9,6 +9,7 @@ struct StatusPopoverView: View {
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
     @AppStorage(PreferenceKeys.showNetwork) private var showNetwork = true
+    @AppStorage(PreferenceKeys.showVPN) private var showVPN = true
     @AppStorage(PreferenceKeys.showVolume) private var showVolume = true
     @AppStorage(PreferenceKeys.showBattery) private var showBattery = true
     @AppStorage(PreferenceKeys.showAccessories) private var showAccessories = true
@@ -94,14 +95,12 @@ struct StatusPopoverView: View {
         .frame(width: 304)
         .id(languageRaw)
         .environment(\.locale, (AppLanguage(rawValue: languageRaw) ?? .system).locale)
-        .onAppear {
-            NSApp.activate(ignoringOtherApps: true)
-        }
     }
 
     private func isVisible(_ section: MenuSection) -> Bool {
         switch section {
         case .network: showNetwork
+        case .vpn: showVPN
         case .volume: showVolume
         case .battery: showBattery
         case .accessories:
@@ -117,6 +116,8 @@ struct StatusPopoverView: View {
         switch section {
         case .network:
             networkSection
+        case .vpn:
+            VPNSection(service: statusStore.vpnStatusService, onOpenSettings: openVPNSettings)
         case .volume:
             HStack(spacing: 0) {
                 VolumeStatusRow(volume: statusStore.status.audio.volume,
@@ -270,6 +271,11 @@ struct StatusPopoverView: View {
 
     private func openSoundSettings() {
         _ = SystemSettingsOpener.open(.sound)
+        onClose()
+    }
+
+    private func openVPNSettings() {
+        _ = SystemSettingsOpener.open(.vpn)
         onClose()
     }
 

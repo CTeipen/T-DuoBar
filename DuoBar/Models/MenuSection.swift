@@ -1,13 +1,14 @@
 import Foundation
 
 enum MenuSection: String, CaseIterable, Identifiable {
-    case network, volume, battery, accessories, audioOutput, microphone
+    case network, vpn, volume, battery, accessories, audioOutput, microphone
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .network: localized("Network")
+        case .vpn: localized("VPN")
         case .volume: localized("Volume")
         case .battery: localized("Battery")
         case .accessories: localized("Accessory batteries")
@@ -19,6 +20,7 @@ enum MenuSection: String, CaseIterable, Identifiable {
     var visibilityKey: String {
         switch self {
         case .network: PreferenceKeys.showNetwork
+        case .vpn: PreferenceKeys.showVPN
         case .volume: PreferenceKeys.showVolume
         case .battery: PreferenceKeys.showBattery
         case .accessories: PreferenceKeys.showAccessories
@@ -41,8 +43,8 @@ enum MenuSection: String, CaseIterable, Identifiable {
 enum MenuSectionOrder {
     static let defaultValue = encode(MenuSection.allCases)
 
-    /// Keep known IDs once, then append new or missing sections. A preference
-    /// from an older/newer build must never permanently lose a section.
+    /// Keep known IDs once and recover new or missing sections without losing
+    /// the relative order stored by older or newer builds.
     static func decode(_ rawValue: String) -> [MenuSection] {
         let ids = (try? JSONDecoder().decode([String].self, from: Data(rawValue.utf8))) ?? []
         return normalized(ids.compactMap(MenuSection.init(rawValue:)))
@@ -64,6 +66,14 @@ enum MenuSectionOrder {
 
     private static func normalized(_ sections: [MenuSection]) -> [MenuSection] {
         var seen = Set<MenuSection>()
-        return (sections + MenuSection.allCases).filter { seen.insert($0).inserted }
+        var result = sections.filter { seen.insert($0).inserted }
+        // Older preferences contain no VPN section. Place it beside Network
+        // while preserving the relative order of all existing sections.
+        if !seen.contains(.vpn), let networkIndex = result.firstIndex(of: .network) {
+            result.insert(.vpn, at: networkIndex + 1)
+            seen.insert(.vpn)
+        }
+        result.append(contentsOf: MenuSection.allCases.filter { seen.insert($0).inserted })
+        return result
     }
 }
