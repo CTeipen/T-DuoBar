@@ -111,7 +111,7 @@
 "Battery reading unavailable" = "Batteriestand nicht verfügbar";
 "Left" = "Links";
 "Right" = "Rechts";
-"Case" = "Case";
+"Case" = "Ladecase";
 "No audio devices" = "Keine Audiogeräte";
 "Unable to select audio device" = "Audiogerät konnte nicht ausgewählt werden";
 "Favorite audio device" = "Bevorzugtes Audiogerät";
@@ -151,7 +151,7 @@
 "Check for updates now" = "Jetzt nach Updates suchen";
 "You have the latest version" = "Du hast die neueste Version";
 "Installed DuoBar version: %@" = "Installierte DuoBar-Version: %@";
-"Unable to check for updates" = "Nach Updates suchen fehlgeschlagen";
+"Unable to check for updates" = "Suche nach Updates fehlgeschlagen";
 "Check your internet connection and try again." = "Überprüfe deine Internetverbindung und versuche es erneut.";
 "OK" = "OK";
 "Update available: %@" = "Update verfügbar: %@";
@@ -217,3 +217,29 @@
 "Connected devices appear automatically. Read errors remain visible." = "Verbundene Geräte erscheinen automatisch. Lesefehler bleiben sichtbar.";
 "Adjust volume by scrolling over the icon" = "Lautstärke durch Scrollen über dem Symbol anpassen";
 "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Nach oben scrollen erhöht die Lautstärke, nach unten verringert sie. Trackpad-Nachlauf wird ignoriert.";
+
+// VPN status.
+"VPN" = "VPN";
+"Connecting…" = "Verbindung wird hergestellt …";
+"Disconnecting…" = "Verbindung wird getrennt …";
+"Disconnected" = "Nicht verbunden";
+"Not configured" = "Nicht konfiguriert";
+"Unnamed VPN" = "Unbenanntes VPN";
+"VPN status unavailable" = "VPN-Status nicht verfügbar";
+"No macOS VPN profiles found" = "Keine macOS-VPN-Profile gefunden";
+"Open VPN Settings" = "VPN-Einstellungen öffnen";
+"Checking…" = "Wird geprüft …";
+"Reading VPN status…" = "VPN-Status wird abgerufen …";
+"macOS could not read VPN status." = "macOS konnte den VPN-Status nicht abrufen.";
+"Interface" = "Schnittstelle";
+"Only VPN connections reported by macOS are shown." = "Es werden nur von macOS gemeldete VPN-Verbindungen angezeigt.";
+
+// Popover appearance.
+"Classic" = "Klassisch";
+"Liquid Glass" = "Liquid Glass";
+"Pop-up appearance" = "Pop-up-Darstellung";
+"Background transparency" = "Hintergrundtransparenz";
+"Liquid Glass requires macOS 26 or later." = "Liquid Glass erfordert macOS 26 oder neuer.";
+"Reduce Transparency is enabled in macOS. The menu uses an opaque background." = "In macOS ist „Transparenz reduzieren“ aktiviert. Das Menü verwendet einen undurchsichtigen Hintergrund.";
+"Text and controls stay opaque. macOS manages the glass effect." = "Text und Bedienelemente bleiben undurchsichtig. macOS steuert den Glaseffekt.";
+"Preview menu" = "Menüvorschau";
