@@ -3,6 +3,9 @@ import SwiftUI
 
 struct StatusPopoverView: View {
     @ObservedObject private var statusStore: SystemStatusStore
+    @ObservedObject private var accessoryService: AccessoryBatteryService
+    @AppStorage(PreferenceKeys.language) private var languageRaw = AppLanguage.system.rawValue
+    @AppStorage(PreferenceKeys.hideEmptyAccessories) private var hideEmptyAccessories = false
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
     @AppStorage(PreferenceKeys.showNetwork) private var showNetwork = true
@@ -19,6 +22,7 @@ struct StatusPopoverView: View {
 
     init(statusStore: SystemStatusStore, onHeightChange: @escaping (CGFloat) -> Void = { _ in }, onClose: @escaping () -> Void) {
         self.statusStore = statusStore
+        self.accessoryService = statusStore.accessoryBatteryService
         self.onClose = onClose
         self.onHeightChange = onHeightChange
     }
@@ -88,6 +92,8 @@ struct StatusPopoverView: View {
         }
         .padding(12)
         .frame(width: 304)
+        .id(languageRaw)
+        .environment(\.locale, (AppLanguage(rawValue: languageRaw) ?? .system).locale)
         .onAppear {
             NSApp.activate(ignoringOtherApps: true)
         }
@@ -98,7 +104,9 @@ struct StatusPopoverView: View {
         case .network: showNetwork
         case .volume: showVolume
         case .battery: showBattery
-        case .accessories: showAccessories
+        case .accessories:
+            showAccessories && AccessorySectionVisibility.showsSection(hideEmpty: hideEmptyAccessories,
+                deviceCount: accessoryService.accessories.count, hasError: accessoryService.errorMessage != nil)
         case .audioOutput: showAudioOutput
         case .microphone: showMicrophone
         }

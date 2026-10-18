@@ -4,6 +4,12 @@ import XCTest
 
 final class LocalizationTests: XCTestCase {
     private let requiredKeys = [
+        "Language",
+        "System language",
+        "Hide empty accessory section",
+        "Connected devices appear automatically. Read errors remain visible.",
+        "Adjust volume by scrolling over the icon",
+        "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored.",
         "Battery connected, not charging",
         "Battery time estimate unavailable",
         "Less than one minute",

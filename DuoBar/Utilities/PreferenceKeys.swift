@@ -1,4 +1,7 @@
 enum PreferenceKeys {
+    static let language = "appearance.language"
+    static let hideEmptyAccessories = "menu.hideEmptyAccessories"
+    static let scrollToAdjustVolume = "duoBar.scrollToAdjustVolume"
     static let showBatteryPercentage = "showBatteryPercentage"
     static let animationsEnabled = "animationsEnabled"
     static let menuBarIconScale = MenuBarIconSize.preferenceKey

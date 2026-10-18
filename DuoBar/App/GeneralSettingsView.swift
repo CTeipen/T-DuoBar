@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct GeneralSettingsView: View {
+    @AppStorage(PreferenceKeys.language) private var languageRaw = AppLanguage.system.rawValue
+    @AppStorage(PreferenceKeys.scrollToAdjustVolume) private var scrollToAdjustVolume = false
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
     @AppStorage(PreferenceKeys.menuBarIconScale) private var iconScale = MenuBarIconSize.defaultScale
@@ -20,6 +22,11 @@ struct GeneralSettingsView: View {
     var body: some View {
         Form {
             Section(localized("Appearance")) {
+                Picker(localized("Language"), selection: Binding(
+                    get: { (AppLanguage(rawValue: languageRaw) ?? .system).rawValue },
+                    set: { languageRaw = $0 })) {
+                    ForEach(AppLanguage.allCases) { language in Text(language.name).tag(language.rawValue) }
+                }
                 Toggle(localized("Show battery percentage in popover"), isOn: $showBatteryPercentage)
                 Toggle(localized("Enable animations"), isOn: $animationsEnabled)
                 LabeledContent(localized("Icon Size")) {
@@ -57,6 +64,8 @@ struct GeneralSettingsView: View {
             }
 
             Section(localized("Behavior")) {
+                Toggle(localized("Adjust volume by scrolling over the icon"), isOn: $scrollToAdjustVolume)
+                    .help(localized("Scroll up to raise volume, down to lower it. Trackpad momentum is ignored."))
                 Toggle(localized("Open on Hover"), isOn: $openOnHover)
                     .help(localized("Open DuoBar when the pointer moves over the menu bar icon."))
                 Toggle(localized("Launch DuoBar at login"), isOn: Binding(

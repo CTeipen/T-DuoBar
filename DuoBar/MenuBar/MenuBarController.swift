@@ -18,6 +18,9 @@ final class MenuBarController: NSObject {
     private var defaultsObserver: NSObjectProtocol?
     private var applicationResignObserver: NSObjectProtocol?
     private var batteryObservation: AnyCancellable?
+    private var volumeScrollMonitor: Any?
+    private var volumeScroll = VolumeScrollAccumulator()
+    private var lastLanguageRaw: String
     private var hoverInteraction: HoverPopoverInteraction
     private var isInvalidated = false
     private var isPopoverVisible = false
@@ -25,6 +28,7 @@ final class MenuBarController: NSObject {
     init(statusStore: SystemStatusStore, defaults: UserDefaults = .standard) {
         self.statusStore = statusStore
         self.defaults = defaults
+        lastLanguageRaw = defaults.string(forKey: PreferenceKeys.language) ?? AppLanguage.system.rawValue
         hoverInteraction = HoverPopoverInteraction(isEnabled: defaults.bool(forKey: PreferenceKeys.openOnHover))
         statusItem = NSStatusBar.system.statusItem(
             withLength: MenuBarIconSize.statusItemWidth(for: MenuBarIconSize.storedScale())
@@ -35,6 +39,7 @@ final class MenuBarController: NSObject {
         observeBatteryStatus()
         observePreferences()
         observeApplicationActivity()
+        updateVolumeScrollMonitor()
     }
 
     private func configureStatusItem() {
@@ -250,6 +255,12 @@ final class MenuBarController: NSObject {
                 self.perform(commands)
                 self.updateAccessoryPolling()
                 self.updateTooltip(for: self.statusStore.status.battery)
+                self.updateVolumeScrollMonitor()
+                let language = self.defaults.string(forKey: PreferenceKeys.language) ?? AppLanguage.system.rawValue
+                if language != self.lastLanguageRaw {
+                    self.lastLanguageRaw = language
+                    HomebrewUpdateService.shared.refreshNotificationLanguage()
+                }
             }
         }
     }
@@ -265,6 +276,51 @@ final class MenuBarController: NSObject {
                 self.perform(self.hoverInteraction.applicationResignedActive())
             }
         }
+    }
+
+    var hasVolumeScrollMonitor: Bool { volumeScrollMonitor != nil }
+
+    private func updateVolumeScrollMonitor() {
+        let enabled = !isInvalidated && defaults.bool(forKey: PreferenceKeys.scrollToAdjustVolume)
+        if !enabled {
+            if let volumeScrollMonitor { NSEvent.removeMonitor(volumeScrollMonitor) }
+            volumeScrollMonitor = nil
+            volumeScroll.reset()
+        } else if volumeScrollMonitor == nil {
+            // App-local, limited to this status button. No global event tap or
+            // Accessibility permission, and no interception of normal clicks.
+            volumeScrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                guard let self, let button = self.statusItem.button,
+                      let window = button.window, event.window === window,
+                      button.bounds.contains(button.convert(event.locationInWindow, from: nil)) else { return event }
+                let handled = self.handleVolumeScroll(deltaY: Double(event.scrollingDeltaY),
+                    precise: event.hasPreciseScrollingDeltas, inverted: event.isDirectionInvertedFromDevice,
+                    momentum: !event.momentumPhase.isEmpty, timestamp: event.timestamp,
+                    beginsGesture: event.phase.contains(.began),
+                    endsGesture: !event.phase.intersection([.ended, .cancelled]).isEmpty)
+                return handled ? nil : event
+            }
+        }
+    }
+
+    @discardableResult
+    func handleVolumeScroll(deltaY: Double, precise: Bool, inverted: Bool, momentum: Bool,
+                            timestamp: TimeInterval, beginsGesture: Bool = false, endsGesture: Bool = false) -> Bool {
+        guard !isInvalidated, !hoverInteraction.isContextMenuOpen,
+              defaults.bool(forKey: PreferenceKeys.scrollToAdjustVolume),
+              let uid = statusStore.status.audio.defaultOutput?.uid,
+              statusStore.status.audio.volume.isSettable,
+              let level = statusStore.status.audio.volume.level, level.isFinite else {
+            volumeScroll.reset()
+            return false
+        }
+        if endsGesture { volumeScroll.reset(); return true }
+        guard let change = volumeScroll.change(deltaY: deltaY, precise: precise, inverted: inverted,
+            momentum: momentum, timestamp: timestamp, deviceUID: uid, beginsGesture: beginsGesture) else { return true }
+        let base = statusStore.status.audio.volume.isMuted ? 0 : level
+        let target = min(max(base + change, 0), 1)
+        if target != base { _ = statusStore.setVolume(target) }
+        return true
     }
 
     private func updatePopoverBehavior() {
@@ -337,6 +393,7 @@ final class MenuBarController: NSObject {
     func invalidate() {
         guard !isInvalidated else { return }
         isInvalidated = true
+        updateVolumeScrollMonitor()
         isPopoverVisible = false
         batteryObservation?.cancel()
         batteryObservation = nil
@@ -361,6 +418,7 @@ final class MenuBarController: NSObject {
     }
 
     deinit {
+        if let volumeScrollMonitor { NSEvent.removeMonitor(volumeScrollMonitor) }
         pendingHoverClose?.cancel()
         lengthAnimationTimer?.invalidate()
         if let defaultsObserver {

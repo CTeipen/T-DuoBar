@@ -17,6 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         UserDefaults.standard.register(defaults: [
+            PreferenceKeys.language: AppLanguage.system.rawValue,
+            PreferenceKeys.hideEmptyAccessories: false,
+            PreferenceKeys.scrollToAdjustVolume: false,
             PreferenceKeys.showBatteryPercentage: true,
             PreferenceKeys.animationsEnabled: true,
             PreferenceKeys.menuBarIconScale: MenuBarIconSize.defaultScale,

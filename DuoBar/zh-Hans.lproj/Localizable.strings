@@ -211,3 +211,9 @@
 "Try again" = "重试";
 "macOS has not reported a battery level." = "macOS 未报告电池电量。";
 "No audio devices found. Check their connection in Sound Settings." = "未找到音频设备。请在声音设置中检查连接。";
+"Language" = "语言";
+"System language" = "系统语言";
+"Hide empty accessory section" = "隐藏空的配件分区";
+"Connected devices appear automatically. Read errors remain visible." = "已连接的设备会自动显示。读取错误仍会显示。";
+"Adjust volume by scrolling over the icon" = "在图标上滚动以调节音量";
+"Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "向上滚动提高音量，向下滚动降低音量。忽略触控板惯性滚动。";

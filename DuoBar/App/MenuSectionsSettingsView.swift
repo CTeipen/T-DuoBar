@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MenuSectionsSettingsView: View {
+    @AppStorage(PreferenceKeys.hideEmptyAccessories) private var hideEmptyAccessories = false
     @AppStorage(PreferenceKeys.menuSectionOrder) private var orderRaw = MenuSectionOrder.defaultValue
     private var sections: [MenuSection] { MenuSectionOrder.decode(orderRaw) }
 
@@ -25,6 +26,8 @@ struct MenuSectionsSettingsView: View {
                 .buttonStyle(.link)
                 .disabled(sections == MenuSection.allCases)
             }
+            Toggle(localized("Hide empty accessory section"), isOn: $hideEmptyAccessories)
+                .help(localized("Connected devices appear automatically. Read errors remain visible."))
         }
     }
 

@@ -211,3 +211,9 @@
 "Try again" = "Спробувати ще раз";
 "macOS has not reported a battery level." = "macOS не повідомила рівень заряду.";
 "No audio devices found. Check their connection in Sound Settings." = "Аудіопристрої не знайдено. Перевірте з’єднання в налаштуваннях звуку.";
+"Language" = "Мова";
+"System language" = "Мова системи";
+"Hide empty accessory section" = "Приховувати порожній розділ аксесуарів";
+"Connected devices appear automatically. Read errors remain visible." = "Підключені пристрої з’являться автоматично. Помилки читання залишаться видимими.";
+"Adjust volume by scrolling over the icon" = "Змінювати гучність прокручуванням над значком";
+"Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Прокручування вгору збільшує гучність, вниз — зменшує. Інерція трекпада ігнорується.";

@@ -211,3 +211,9 @@
 "Try again" = "Try again";
 "macOS has not reported a battery level." = "macOS has not reported a battery level.";
 "No audio devices found. Check their connection in Sound Settings." = "No audio devices found. Check their connection in Sound Settings.";
+"Language" = "Language";
+"System language" = "System language";
+"Hide empty accessory section" = "Hide empty accessory section";
+"Connected devices appear automatically. Read errors remain visible." = "Connected devices appear automatically. Read errors remain visible.";
+"Adjust volume by scrolling over the icon" = "Adjust volume by scrolling over the icon";
+"Scroll up to raise volume, down to lower it. Trackpad momentum is ignored." = "Scroll up to raise volume, down to lower it. Trackpad momentum is ignored.";

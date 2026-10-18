@@ -10,7 +10,8 @@ final class HomebrewUpdateService: ObservableObject {
     nonisolated static let installAction = "TDB_INSTALL_HOMEBREW"
     @Published private(set) var availableUpdate: HomebrewRelease?
     @Published private(set) var isChecking = false
-    @Published private(set) var statusMessage: String?
+    private enum MessageState { case check(HomebrewUpdateCheckResult), installFailed }
+    @Published private var messageState: MessageState?
     @Published private(set) var lastChecked: Date?
 
     private let client: any HomebrewReleaseFetching
@@ -23,6 +24,17 @@ final class HomebrewUpdateService: ObservableObject {
 
     var installedVersionDescription: String {
         Self.versionDescription(currentVersion, build: currentBuild)
+    }
+
+    var statusMessage: String? {
+        switch messageState {
+        case .check(.updateAvailable(let update)):
+            localized("Installed: %@. Update available: %@.", installedVersionDescription, versionDescription(for: update))
+        case .check(.upToDate): localized("DuoBar %@ is up to date", installedVersionDescription)
+        case .check(.failed): localized("Update check failed. Will retry later.")
+        case .installFailed: localized("Unable to start Homebrew. Use the update command below.")
+        case nil: nil
+        }
     }
 
     func versionDescription(for release: HomebrewRelease) -> String {
@@ -55,9 +67,7 @@ final class HomebrewUpdateService: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        let install = UNNotificationAction(identifier: Self.installAction, title: localized("Install with Homebrew"), options: .foreground)
-        let category = UNNotificationCategory(identifier: Self.notificationCategory, actions: [install], intentIdentifiers: [])
-        UNUserNotificationCenter.current().setNotificationCategories([category])
+        registerNotificationCategory()
         let timer = Timer(timeInterval: 60 * 60, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.check() }
         }
@@ -65,6 +75,17 @@ final class HomebrewUpdateService: ObservableObject {
         self.timer = timer
         RunLoop.main.add(timer, forMode: .common)
         checkIfDue()
+    }
+
+    func refreshNotificationLanguage() {
+        guard timer != nil else { return }
+        registerNotificationCategory()
+    }
+
+    private func registerNotificationCategory() {
+        let install = UNNotificationAction(identifier: Self.installAction, title: localized("Install with Homebrew"), options: .foreground)
+        let category = UNNotificationCategory(identifier: Self.notificationCategory, actions: [install], intentIdentifiers: [])
+        UNUserNotificationCenter.current().setNotificationCategories([category])
     }
 
     func checkIfDue() { Task { await check() } }
@@ -86,12 +107,7 @@ final class HomebrewUpdateService: ObservableObject {
             defaults.set(try JSONEncoder().encode(release), forKey: PreferenceKeys.cachedHomebrewRelease)
             lastChecked = date
             availableUpdate = release.isNewer(than: currentVersion, build: currentBuild) ? release : nil
-            if let update = availableUpdate {
-                statusMessage = localized("Installed: %@. Update available: %@.",
-                    installedVersionDescription, versionDescription(for: update))
-            } else {
-                statusMessage = localized("DuoBar %@ is up to date", installedVersionDescription)
-            }
+            messageState = .check(availableUpdate.map(HomebrewUpdateCheckResult.updateAvailable) ?? .upToDate)
             let stillEnabled = defaults.object(forKey: PreferenceKeys.weeklyUpdateChecks) as? Bool ?? true
             if !force, stillEnabled, let update = availableUpdate,
                defaults.string(forKey: PreferenceKeys.lastNotifiedUpdate) != update.identifier,
@@ -100,7 +116,7 @@ final class HomebrewUpdateService: ObservableObject {
             }
             return availableUpdate.map(HomebrewUpdateCheckResult.updateAvailable) ?? .upToDate
         } catch {
-            statusMessage = localized("Update check failed. Will retry later.")
+            messageState = .check(.failed)
             return .failed
         }
     }
@@ -159,10 +175,10 @@ final class HomebrewUpdateService: ObservableObject {
             NSWorkspace.shared.open([script], withApplicationAt: terminal, configuration: .init()) { _, error in
                 guard error != nil else { return }
                 Task { @MainActor in
-                    self.statusMessage = localized("Unable to start Homebrew. Use the update command below.")
+                    self.messageState = .installFailed
                 }
             }
-        } catch { statusMessage = localized("Unable to start Homebrew. Use the update command below.") }
+        } catch { messageState = .installFailed }
     }
 
     static func makeUpdateNotificationContent(_ update: HomebrewRelease, currentVersion: String,

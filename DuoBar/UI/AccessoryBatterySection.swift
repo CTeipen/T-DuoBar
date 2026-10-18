@@ -21,7 +21,7 @@ struct AccessoryBatterySection: View {
             HStack(spacing: 0) {
                 StatusRow(symbol: "keyboard", title: localized("Accessory batteries"),
                     detail: service.isRefreshing ? localized("Reading accessories…")
-                        : service.errorMessage ?? localized("No connected accessories"),
+                        : localized(service.errorMessage == nil ? "No connected accessories" : "Accessory battery data unavailable"),
                     stateText: "", tint: .primary, drawsBackground: false)
                 if let onOpenSettings {
                     SystemSettingsButton(title: localized("Bluetooth Settings…"), action: onOpenSettings)

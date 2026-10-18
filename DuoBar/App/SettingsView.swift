@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     private enum Tab: Hashable { case general, notifications, updates }
     @State private var selectedTab: Tab = .general
+    @AppStorage(PreferenceKeys.language) private var languageRaw = AppLanguage.system.rawValue
     private let identity = AppIdentity()
 
     var body: some View {
@@ -20,6 +21,7 @@ struct SettingsView: View {
                     .tabItem { Label(localized("Updates"), systemImage: "arrow.triangle.2.circlepath") }
                     .tag(Tab.updates)
             }
+            .id(languageRaw)
             Divider()
             HStack {
                 Text("\(AppIdentity.name) \(identity.version) (\(identity.build))")
@@ -34,6 +36,7 @@ struct SettingsView: View {
         }
         .frame(width: 560, height: 630)
         .navigationTitle(localized("T-DuoBar Settings"))
+        .environment(\.locale, (AppLanguage(rawValue: languageRaw) ?? .system).locale)
         .onAppear { NSApp.activate(ignoringOtherApps: true) }
     }
 }
