@@ -20,7 +20,17 @@ Settings → Updates provides a weekly-check toggle, manual check, installation 
 
 Starting with 1.6.1, settings always show the installed version and build number. Every manual check shows a dialog: the installed and available versions with an installation button, confirmation that the installed version is current, or a connection error. Weekly update notifications also identify the installed and available versions. Manual-check dialogs do not require macOS notification permission.
 
-## Version 1.10.0 (build 22)
+## Version 1.11.0 (build 29)
+
+- A separate VPN card shows the status and profile name reported by macOS, with optional interface details and a link to VPN settings. It can be hidden or reordered independently.
+- Choose Classic or native Liquid Glass in Appearance. Glass requires macOS 26+, has a background-transparency slider, and keeps text and controls at normal opacity. Classic is the default; older systems and Reduce Transparency use the opaque presentation.
+- Preview the actual menu from Settings. Both styles share the same content and disclosure state.
+- Normal status-button presses toggle once on mouse-down, preventing a delayed mouse-up from reopening the menu. Context-menu and hover behavior are retained.
+- VPN observation follows actual menu visibility, preserves the last snapshot while refreshing, coalesces changes and rejects cancelled or late reads.
+
+No breaking changes or migration steps. Existing preferences are retained; a new VPN section is inserted beside Network in older saved orders.
+
+### Previous improvements (1.10.0)
 
 - Select the app language in Appearance: System, English, Russian, Ukrainian, Simplified Chinese or Traditional Chinese. Custom labels update without restarting.
 - Optionally hide the empty accessory section. Connected devices return automatically; read failures remain visible.
@@ -54,7 +64,7 @@ No breaking changes or preference migration. Existing settings are retained.
 
 ## Experimental DMG
 
-[Download T-DuoBar 1.10.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.10.0/T-DuoBar-1.10.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.10.0)
+[Download T-DuoBar 1.11.0](https://github.com/squazaryu/T-DuoBar/releases/download/v1.11.0/T-DuoBar-1.11.0.dmg) · [Release notes and SHA-256](https://github.com/squazaryu/T-DuoBar/releases/tag/v1.11.0)
 
 **The DMG is an experimental ad-hoc signed build, not Developer ID signed or Apple notarized.** Quit DuoBar, back up the installed copy, mount the DMG, and drag `DuoBar.app` to Applications. Launch it from Applications. macOS may block a downloaded copy; use [Apple's documented individual-app procedure](https://support.apple.com/en-us/102445) only if you trust the release. Do not disable system protections globally.
 
@@ -74,8 +84,9 @@ The script builds Release, verifies the local signature, installs `/Applications
 
 ## Validation and limitations
 
-The 1.10.0 implementation passed 320 tests; six hardware-dependent tests were skipped. Both Release architectures compiled. A native hosted interaction test reproduces the former blank-space disclosure bug and verifies its fix. Physical mouse/trackpad scrolling over the installed status item still needs broader manual testing. These results do not replace testing on your devices or every supported macOS version.
+The 1.11.0 implementation passed 352 tests; six hardware-dependent checks were skipped. Release compiled for both architectures; runtime checks ran on Apple Silicon. Native integration tests exercise the real menu controller, glass surface, background opacity, observer cleanup and repeated clicks. See the [performance and lifecycle report](release/1.11.0/VALIDATION.md) for short desktop measurements and their limits. These checks do not establish compatibility with every device, leak freedom or long-duration energy use.
 
+- VPN status covers configured connections reported by macOS; a tunnel interface alone is not proof of a VPN, and the app does not claim all traffic uses it. No VPN connection is started or stopped.
 - Battery duration is the estimate supplied by macOS and may be unavailable.
 - Accessory support and individual earbud/case readings depend on the macOS Bluetooth report. Reads occur locally while the accessory section is shown.
 - A reliable public source for the charge limit has not been identified, so it remains **Unavailable**. The app does not infer a limit from an 80% reading or a paused charge.

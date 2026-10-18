@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-18",
+  "environment": {
+    "platform": "macOS 27.2 (26B5112a)",
+    "architecture": "arm64",
+    "kind": "ordinary desktop session"
+  },
+  "metric_notes": {
+    "cpu": "100% means one fully occupied CPU core. Cumulative Mach CPU counters converted with timebase 125/3 before deltas.",
+    "footprint": "Physical footprint, MiB (2^20 bytes), distinct from resident memory.",
+    "scope": "DuoBar process only; helper measured independently. WindowServer, GPU work and OS daemons are not included.",
+    "limits": "Short captures with desktop activity and different app-copy locations. No claim of performance improvement, energy drain, leak freedom or UI input latency.",
+    "appearance": "Build 26 Classic captured at idle; GPU and open-popover comparison of Classic/Liquid Glass not measured."
+  },
+  "phases": [
+    {
+      "phase": "baseline-1",
+      "version": "1.10.0 (22)",
+      "condition": "idle",
+      "seconds": 60.000683,
+      "cpu_percent_one_core": 0.27063462760915574,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 23.344688415527344,
+      "footprint_mib_first": 23.422813415527344,
+      "footprint_mib_last": 23.360313415527344,
+      "footprint_mib_peak": 23.438438415527344,
+      "resident_mib_median": 92.109375,
+      "interrupt_wakeups_per_second": 0.5166607853447268,
+      "package_idle_wakeups_per_second": 0.0
+    },
+    {
+      "phase": "candidate-1",
+      "version": "1.11.0 (24)",
+      "condition": "idle",
+      "seconds": 60.001992,
+      "cpu_percent_one_core": 0.16020620782056702,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 37.53223419189453,
+      "footprint_mib_first": 39.42285919189453,
+      "footprint_mib_last": 37.61035919189453,
+      "footprint_mib_peak": 39.42285919189453,
+      "resident_mib_median": 97.703125,
+      "interrupt_wakeups_per_second": 0.5499817406062119,
+      "package_idle_wakeups_per_second": 0.01666611335170339
+    },
+    {
+      "phase": "baseline-2",
+      "version": "1.10.0 (22)",
+      "condition": "idle",
+      "seconds": 60.004117,
+      "cpu_percent_one_core": 0.8512169389977025,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 23.204086303710938,
+      "footprint_mib_first": 23.516586303710938,
+      "footprint_mib_last": 23.141586303710938,
+      "footprint_mib_peak": 23.516586303710938,
+      "resident_mib_median": 82.09375,
+      "interrupt_wakeups_per_second": 0.5832933096907333,
+      "package_idle_wakeups_per_second": 0.0
+    },
+    {
+      "phase": "candidate-2",
+      "version": "1.11.0 (24)",
+      "condition": "idle",
+      "seconds": 60.005056,
+      "cpu_percent_one_core": 0.0018447045528963426,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 14.579017639160156,
+      "footprint_mib_first": 14.625892639160156,
+      "footprint_mib_last": 14.68841552734375,
+      "footprint_mib_peak": 14.68841552734375,
+      "resident_mib_median": 76.84375,
+      "interrupt_wakeups_per_second": 0.0499957870216803,
+      "package_idle_wakeups_per_second": 0.0
+    },
+    {
+      "phase": "open-popover",
+      "version": "1.11.0 (24)",
+      "condition": "user-assisted open popover",
+      "seconds": 45.000791,
+      "cpu_percent_one_core": 0.4607695851390701,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 52.79792785644531,
+      "footprint_mib_first": 52.86042785644531,
+      "footprint_mib_last": 52.75105285644531,
+      "footprint_mib_peak": 52.96980285644531,
+      "resident_mib_median": 83.65625,
+      "interrupt_wakeups_per_second": 0.46665846384789106,
+      "package_idle_wakeups_per_second": 0.0
+    },
+    {
+      "phase": "build25-idle",
+      "version": "1.11.0 (25)",
+      "condition": "idle with display sleep prevention",
+      "seconds": 60.000508,
+      "cpu_percent_one_core": 0.1982361699337612,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 38.15727996826172,
+      "footprint_mib_first": 38.15727996826172,
+      "footprint_mib_last": 38.15727996826172,
+      "footprint_mib_peak": 38.15727996826172,
+      "resident_mib_median": 71.28125,
+      "interrupt_wakeups_per_second": 0.8499928033942645,
+      "package_idle_wakeups_per_second": 0.016666525556750286
+    },
+    {
+      "phase": "build26-idle",
+      "version": "1.11.0 (26)",
+      "condition": "fresh launch, 10 s warmup, display sleep temporarily prevented; Classic; no popup opened by test",
+      "seconds": 45.002426,
+      "cpu_percent_one_core": 0.001956374529675356,
+      "child_cpu_seconds": 0.0,
+      "footprint_mib_median": 14.282119750976562,
+      "footprint_mib_first": 14.328994750976562,
+      "footprint_mib_last": 14.219619750976562,
+      "footprint_mib_peak": 14.328994750976562,
+      "resident_mib_median": 76.703125,
+      "interrupt_wakeups_per_second": 0.11110512131057113,
+      "package_idle_wakeups_per_second": 0.022221024262114225
+    }
+  ],
+  "native_vpn_stress": {
+    "closed_phase_cpu_s": 0.0001903750000000759,
+    "closed_phase_footprint_mib": 4.344276428222656,
+    "closed_phase_interrupts": 2,
+    "closed_phase_s": 5,
+    "cpu_total_s": 1.9680261666666667,
+    "cycles": 500,
+    "elapsed_s": 2.5784509166696807,
+    "memory_samples": [
+      {
+        "cycle": 1,
+        "footprint_mib": 3.8442764282226562,
+        "resident_mib": 10.25
+      },
+      {
+        "cycle": 10,
+        "footprint_mib": 4.375526428222656,
+        "resident_mib": 10.78125
+      },
+      {
+        "cycle": 50,
+        "footprint_mib": 4.406776428222656,
+        "resident_mib": 10.8125
+      },
+      {
+        "cycle": 100,
+        "footprint_mib": 4.422401428222656,
+        "resident_mib": 10.828125
+      },
+      {
+        "cycle": 200,
+        "footprint_mib": 4.422401428222656,
+        "resident_mib": 10.828125
+      },
+      {
+        "cycle": 300,
+        "footprint_mib": 4.422401428222656,
+        "resident_mib": 10.828125
+      },
+      {
+        "cycle": 400,
+        "footprint_mib": 4.438026428222656,
+        "resident_mib": 10.84375
+      },
+      {
+        "cycle": 500,
+        "footprint_mib": 4.469276428222656,
+        "resident_mib": 10.875
+      }
+    ],
+    "observation_failures": 0,
+    "scope": "optimized standalone production VPN service, not UI click-to-display latency",
+    "setup_and_read_ms": {
+      "max": 15.168000005360227,
+      "p50": 4.524708332610317,
+      "p95": 6.092291667300742
+    },
+    "states": {
+      "Connected": 500
+    },
+    "successful_reads": 500,
+    "unexpected_cached_state_resets": 0
+  },
+  "uncached_bluetooth_helper": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "wall_s": 0.067487083,
+      "user_s": 0.01,
+      "system_s": 0.01,
+      "max_rss_mib": 6.71875
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "wall_s": 0.0650235,
+      "user_s": 0.01,
+      "system_s": 0.01,
+      "max_rss_mib": 6.71875
+    },
+    {
+      "run": 3,
+      "exit_code": 0,
+      "wall_s": 0.053473333999999983,
+      "user_s": 0.01,
+      "system_s": 0.01,
+      "max_rss_mib": 6.53125
+    }
+  ],
+  "source": {
+    "baseline_commit": "8d16dc7aa599dd5af3bd01fec3b36d3634545f4d",
+    "candidate_version": "1.11.0",
+    "candidate_build": 26,
+    "candidate_uncommitted": true,
+    "candidate_swift_and_strings_sha256": "0e5033ef4f8f936e8eacd6ebb299baef0e8329eb0c2d688a6ea27d66a72b65a9"
+  },
+  "tests": {
+    "passed": 340,
+    "failed": 0,
+    "skipped": 6,
+    "scope": "native macOS XCTest; hardware-dependent cases skipped"
+  },
+  "installed_verification": {
+    "path": "/Applications/DuoBar.app",
+    "version": "1.11.0",
+    "build": 26,
+    "architectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "signature": "ad-hoc; codesign --verify --deep --strict passed",
+    "existing_preferences_changed": false
+  },
+  "appearance_follow_up": {
+    "candidate_build": 27,
+    "tests": {
+      "passed": 343,
+      "failed": 0,
+      "skipped": 6
+    },
+    "change": "Dedicated transparent NSPanel with one clear NSGlassEffectView replaces the tint-only Liquid Glass mode. Classic retains NSPopover.",
+    "validation": "Native window/layer/lifecycle integration tests and live UI switch/preview/disclosure/Escape checks.",
+    "resource_limit": "All numerical resource phases in this file are builds 22, 24, 25 and 26; dedicated glass panel CPU/GPU/energy cost was not measured."
+  }
+}
