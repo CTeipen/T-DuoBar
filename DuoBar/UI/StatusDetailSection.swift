@@ -19,11 +19,17 @@ struct StatusDetailSection<Header: View, Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
-                Button { expanded.toggle() } label: { header.environment(\.statusSectionExpanded, expanded) }
-                    .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityHint(localized("Show details"))
-                    .accessibilityValue(expanded ? localized("Expanded") : localized("Collapsed"))
+                Button { expanded.toggle() } label: {
+                    header
+                        .environment(\.statusSectionExpanded, expanded)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        // Plain buttons otherwise exclude transparent gaps from hit testing.
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityHint(localized("Show details"))
+                .accessibilityValue(expanded ? localized("Expanded") : localized("Collapsed"))
                 if let settingsTitle, let onOpenSettings {
                     SystemSettingsButton(title: settingsTitle, action: onOpenSettings)
                         .padding(.trailing, 8)

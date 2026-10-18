@@ -42,16 +42,21 @@ final class PopoverRenderTests: XCTestCase {
     @MainActor
     func testRenderFinalPopover() throws {
         let store = SystemStatusStore(startServices: false)
-        store.applyDebugBatteryLevel(.full)
+        store.applyDebugBatteryStatus(BatteryStatus(percentage: 72, isCharging: false,
+            isPluggedIn: false, isFullyCharged: false, isAvailable: true, timeToEmptyMinutes: 108))
         store.applyDebugNetworkState(.strong)
         store.applyDebugAudioDeviceState(.builtIn)
         store.applyDebugVolumeState(.fiftyOne)
 
-        let view = StatusPopoverView(statusStore: store, onClose: {})
-            .background(Color(nsColor: .windowBackgroundColor))
-            .environment(\.colorScheme, .dark)
-
-        try writePNG(view, named: "DuoBar-1.0-Popover.png")
+        for (name, scheme, appearance) in [
+            ("Light", ColorScheme.light, NSAppearance.Name.aqua),
+            ("Dark", ColorScheme.dark, NSAppearance.Name.darkAqua)
+        ] {
+            let view = StatusPopoverView(statusStore: store, onClose: {}).content
+                .background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, scheme)
+            try writePNG(view, named: "T-DuoBar-Popover-\(name).png", appearance: appearance)
+        }
     }
 
     @MainActor
@@ -150,9 +155,10 @@ final class PopoverRenderTests: XCTestCase {
     }
 
     @MainActor
-    private func writePNG<Content: View>(_ content: Content, named name: String) throws {
+    private func writePNG<Content: View>(_ content: Content, named name: String,
+                                       appearance: NSAppearance.Name = .darkAqua) throws {
         let hostingView = NSHostingView(rootView: content)
-        hostingView.appearance = NSAppearance(named: .darkAqua)
+        hostingView.appearance = NSAppearance(named: appearance)
         hostingView.frame = NSRect(origin: .zero, size: hostingView.fittingSize)
         hostingView.layoutSubtreeIfNeeded()
         let representation = try XCTUnwrap(hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds))

@@ -7,7 +7,6 @@ struct StatusRow: View {
         case menu
     }
 
-    @Environment(\.statusSectionExpanded) private var isExpanded
     let symbol: String
     let title: String
     let detail: String
@@ -114,10 +113,7 @@ struct StatusRow: View {
             }
 
             if let accessorySymbol {
-                Image(systemName: accessorySymbol)
-                    .rotationEffect(.degrees(accessorySymbol == "chevron.right" && isExpanded ? 90 : 0))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+                StatusRowAccessorySlot(symbol: accessorySymbol)
             }
         }
         .contentShape(Rectangle())
@@ -129,5 +125,43 @@ struct StatusRow: View {
         case .disclosure: "chevron.right"
         case .menu: "chevron.up.chevron.down"
         }
+    }
+}
+
+struct StatusRowHeader: View {
+    let title: String
+    let value: String?
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(title)
+                .font(.system(size: 12.5, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+            if let value {
+                Text(value)
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Align disclosure indicators independently of their intrinsic symbol widths.
+struct StatusRowAccessorySlot: View {
+    @Environment(\.statusSectionExpanded) private var isExpanded
+    let symbol: String
+
+    var body: some View {
+        Image(systemName: symbol)
+            .rotationEffect(.degrees(symbol == "chevron.right" && isExpanded ? 90 : 0))
+            .font(.system(size: 9, weight: .semibold))
+            .foregroundStyle(.tertiary)
+            .frame(width: 12, height: 16)
+            .accessibilityHidden(true)
     }
 }

@@ -17,19 +17,7 @@ struct VolumeStatusRow: View {
                 .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(localized("Volume"))
-                        .font(.system(size: 12.5, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.82)
-                    Spacer()
-                    Text(stateText)
-                        .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-                }
+                StatusRowHeader(title: localized("Volume"), value: stateText)
 
                 if volume.isSettable, let level = volume.level {
                     Slider(
@@ -51,6 +39,7 @@ struct VolumeStatusRow: View {
                         .minimumScaleFactor(0.72)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 10)
         .frame(height: 54)

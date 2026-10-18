@@ -368,7 +368,6 @@ struct StatusPopoverView: View {
 }
 
 struct BatteryStatusRow: View {
-    @Environment(\.statusSectionExpanded) private var isExpanded
     let battery: BatteryStatus
     let showPercentage: Bool
     var showsDisclosure = false
@@ -385,17 +384,7 @@ struct BatteryStatusRow: View {
                 .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
             VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 8) {
-                    Text(localized("Battery"))
-                        .font(.system(size: 12.5, weight: .semibold))
-                    Spacer(minLength: 8)
-                    if let trailingValue {
-                        Text(trailingValue)
-                            .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
-                }
+                StatusRowHeader(title: localized("Battery"), value: trailingValue)
                 Text(detail)
                     .font(.system(size: 10.5))
                     .foregroundStyle(.secondary)
@@ -410,12 +399,10 @@ struct BatteryStatusRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if showsDisclosure {
-                Image(systemName: "chevron.right")
-                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+                StatusRowAccessorySlot(symbol: "chevron.right")
             }
         }
         .padding(.horizontal, 10)
